@@ -11,7 +11,7 @@
 
 1.  **Clonar el repo**
     ```bash
-    git clone <https://github.com/darkanthem21/trabajo_bd>
+    git clone https://github.com/darkanthem21/trabajo_bd.git
     cd trabajo_bd
     ```
 ### Paso 3: Configurar el Entorno Python
