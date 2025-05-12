@@ -36,9 +36,9 @@ CREATE TABLE "cliente" (
 );
 
 CREATE TABLE "dim_movimiento" (
-    "id" SMALLSERIAL PRIMARY KEY, -- Puedes usar SMALLSERIAL si sabes que serán muy pocos tipos
-    "tipo_movimiento" VARCHAR(20) UNIQUE NOT NULL, -- ej: 'ENTRADA_INI', 'SALIDA_VTA'
-    "descripcion_movimiento" VARCHAR(255) -- ej: 'Entrada por Inventario Inicial', 'Salida por Venta'
+    "id" SMALLSERIAL PRIMARY KEY,
+    "tipo_movimiento" VARCHAR(20) UNIQUE NOT NULL,
+    "descripcion_movimiento" VARCHAR(255)
 );
 
 -- Creación Tabla Productos (depende de fabricantes, categorias, ubicaciones)
