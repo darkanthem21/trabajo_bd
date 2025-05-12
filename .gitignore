@@ -1,0 +1,11 @@
+.venv/
+venv/
+*.venv
+.env*
+__pycache__/
+*.py[cod]
+*$py.class
+*.log
+*.swp
+presentacion.pdf
+crear_base.sql
