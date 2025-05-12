@@ -16,7 +16,7 @@
     ```
 ### Paso 3: Configurar el Entorno Python
 
-1.  **Crear Ambiente Virtual:** Dentro de la carpeta raíz del proyecto (`trabajo_bd/`), crea un ambiente virtual (recomendado `venv`):
+1.  **Crear Ambiente Virtual:** Dentro de la carpeta raíz del proyecto (`trabajo_bd/`).:
     ```bash
     python -m venv .venv
     ```
@@ -39,7 +39,7 @@
     ```
 2.  **Crear el Rol (Usuario) para la Aplicación:** .
     ```sql
-    CREATE USER lubricentro_user WITH PASSWORD 'pass';
+    CREATE USER user WITH PASSWORD 'pass';
     ```
 
 3.  **Crear la Base de Datos:**
@@ -53,7 +53,7 @@
     ```
 
     ```sql
-    GRANT ALL ON SCHEMA public TO lubricentro_user;
+    GRANT ALL ON SCHEMA public TO user;
     ```
 
 6.  **Salir de `psql`:**
@@ -63,24 +63,22 @@
 
 ### Paso 6: Crear Estructura de Tablas (schema)
 
-Ahora que la base de datos y el usuario están configurados y el usuario es dueño, este usuario puede crear las tablas.
-
-1.  **Conéctate a tu Base de Datos con el Usuario de la Aplicación:**
+1.  **conectarse a la base de datos:**
     ```bash
-    psql -U lubricentro_user -d lubricentro_db -h localhost
+    psql -U user -d lubricentro_db -h localhost
     ```
 
-2.  **Ejecuta el Script SQL de Creación de Tablas:**
+2.  **ejecutar el archivo para crear las tablas:**
     ```sql
     \i sql/crear_base_v2.sql
     ```
 
-3.  **Verifica las Tablas:**
+3.  **se pueden revisar las tablas con:**
     ```sql
     \dt
     ```
 
-4.  **Salir de `psql`:**
+4.  **Salir:**
     ```sql
     \q
     ```
@@ -88,8 +86,8 @@ Ahora que la base de datos y el usuario están configurados y el usuario es due�
 1.  **Crear archivo `.env`:** REVISAR (`.env_example`)
 
 ### Paso 8: Poblar la Base de Datos con Datos de Prueba
-1.  **Asegúrate de estar en la carpeta raíz del proyecto** (`lubricentro_proyecto/`) en tu terminal y que tu **ambiente virtual (`.venv`) esté activado**.
-2.  **Ejecuta el script de inserción Python:**
+1.  **Revisar estar e la raiz del directorio y con el ambiente activado (ya me equivoque mucho) **.
+2.  **Ejecuta el script de inserción:**
     ```bash
     python sql/inserts.py
     ```
