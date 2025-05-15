@@ -1,9 +1,12 @@
 import os
 from dotenv import load_dotenv
 import sys
+import logging
+
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def find_project_root(marker_file='.env'):
-    """Busca la raíz del proyecto subiendo directorios hasta encontrar un archivo marcador."""
+    """busca la raiz del proyecto encontrando el .env"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     while True:
         if os.path.exists(os.path.join(current_dir, marker_file)):
@@ -16,13 +19,15 @@ def find_project_root(marker_file='.env'):
 project_root = find_project_root('.env')
 if project_root:
     dotenv_path = os.path.join(project_root, '.env')
-    try:
-        load_dotenv(dotenv_path=dotenv_path)
-        print(f"Archivo .env cargado desde: {dotenv_path}")
-    except Exception as e:
-        print(f"Error al cargar el archivo .env desde {dotenv_path}: {e}")
+    if load_dotenv(dotenv_path=dotenv_path):
+        pass
+    else:
+        logging.error(f"No se pudo cargar el archivo .env desde {dotenv_path}")
 else:
-    load_dotenv()
+    if not load_dotenv():
+        print("no existe el .env")
+        pass
+
 
 DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
@@ -32,8 +37,7 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 
 def check_db_config() -> bool:
     """
-    Verifica que las variables de entorno esenciales para la BD estén definidas.
-    Devuelve True si la configuración es válida, False en caso contrario.
+    revisa las variables del .env para asegurarse que no falte ninguna
     """
     essential_vars = {
         "DB_NAME": DB_NAME,
@@ -45,24 +49,6 @@ def check_db_config() -> bool:
     missing_vars = [name for name, value in essential_vars.items() if value is None]
 
     if missing_vars:
-        print("\n--- ERROR CRÍTICO DE CONFIGURACIÓN ---")
-        print("Faltan las siguientes variables de entorno esenciales para la base de datos:")
-        for var_name in missing_vars:
-            print(f"  - {var_name}")
-        print("\nAsegúrate de que estén definidas en el archivo .env en la raíz del proyecto")
-        print(f"(Se buscó .env en: {project_root or 'No encontrado'})")
-        print("o que estén definidas como variables de entorno del sistema.")
-        print("----------------------------------------")
+        logging.error("faltan variable para conectarse a la base de datos, revisar .env")
         return False
-    else:
-        print("\nConfiguración de base de datos cargada y validada correctamente.")
-        return True
-
-if __name__ == "__main__":
-    print("\n--- Probando la carga de configuración (config.py) ---")
-    is_valid = check_db_config()
-    if not is_valid:
-        print("\nLa validación de la configuración falló. Revisa los mensajes anteriores.")
-        sys.exit(1)
-    else:
-         print("\nPrueba de carga de configuración finalizada exitosamente.")
+    return True
