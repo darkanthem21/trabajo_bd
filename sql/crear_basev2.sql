@@ -1,11 +1,11 @@
 DROP TABLE IF EXISTS "hechos_stock";
 DROP TABLE IF EXISTS "hechos_ventas";
 DROP TABLE IF EXISTS "productos";
-DROP TABLE IF EXISTS "cliente"; -- Se modifica esta tabla
+DROP TABLE IF EXISTS "cliente";
 DROP TABLE IF EXISTS "ubicaciones";
 DROP TABLE IF EXISTS "categorias";
 DROP TABLE IF EXISTS "fabricantes";
-DROP TABLE IF EXISTS "dim_movimiento"; -- Nombre corregido
+DROP TABLE IF EXISTS "dim_movimiento";
 
 CREATE TABLE "fabricantes" (
   "fabricante_id" SERIAL PRIMARY KEY,
@@ -24,8 +24,8 @@ CREATE TABLE "ubicaciones" (
 );
 
 CREATE TABLE "cliente" (
-  "cliente_id" INTEGER PRIMARY KEY,              -- OJO: No es SERIAL
-  "rut" VARCHAR(15) UNIQUE NOT NULL,             -- NUEVA COLUMNA RUT
+  "cliente_id" INTEGER PRIMARY KEY,
+  "rut" VARCHAR(15) UNIQUE NOT NULL,
   "nombre_cliente" VARCHAR(255) NOT NULL
 );
 

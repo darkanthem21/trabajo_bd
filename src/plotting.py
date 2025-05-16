@@ -16,9 +16,7 @@ def graficar_ventas_por_mes(df_ventas_mes: pd.DataFrame, filename: str, year: in
         print(f"INFO: No hay datos de ventas por mes para el año {year} para graficar.")
         return
 
-    # Asegurarse de que 'mes' esté ordenado y sea categórico para el gráfico
     df_ventas_mes = df_ventas_mes.sort_values('mes')
-    # Mapear números de mes a nombres para mejor legibilidad
     meses_nombres = {
         1: 'Ene', 2: 'Feb', 3: 'Mar', 4: 'Abr', 5: 'May', 6: 'Jun',
         7: 'Jul', 8: 'Ago', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dic'
@@ -50,7 +48,7 @@ def graficar_top_productos(df_top_productos: pd.DataFrame, filename: str, year: 
         print(f"INFO: No hay datos de top productos para el año {year} para graficar.")
         return
 
-    plt.figure(figsize=(10, 7)) # Ajustar tamaño para barras horizontales
+    plt.figure(figsize=(10, 7))
     sns.barplot(x='cantidad_total_vendida', y='nombre_articulo', data=df_top_productos, palette="coolwarm", hue='nombre_articulo', dodge=False, legend=False)
     plt.title(f'Top 5 Productos Más Vendidos (por Cantidad) - Año {year}', fontsize=16)
     plt.xlabel('Cantidad Total Vendida', fontsize=12)
