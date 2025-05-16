@@ -1,93 +1,148 @@
+# Análisis de Datos para Lubricentro "LUBRI-EXPRESS"
 
-## USO DEL CODIGO
+## 1. Funcionamiento
 
-### Paso 1: Prerrequisitos
+El programa principal (`src/main.py`) permite generar los siguientes análisis para un año determinado:
+
+* Ventas totales por mes.
+* Top 5 productos más vendidos (por cantidad).
+* Ventas totales por categoría de producto.
+* Faltan otras 6 (**PENDIENTEEEEE**)
+
+Los resultados de cada análisis se guardan como imágenes PNG en la carpeta `output/`.
+
+## 2. Prerrequisitos
 
 * **Python**
 * **Git**
-* **PostgreSQL**
+* **PostgreSQL** (Servidor instalado y corriendo)
 
-### Paso 2: Obtener el Código
+## 3. Configuración del Entorno
 
-1.  **Clonar el repo**
-    ```bash
-    git clone https://github.com/darkanthem21/trabajo_bd.git
-    cd trabajo_bd
-    ```
-### Paso 3: Configurar el Entorno Python
+### 3.1. Clonar el Repositorio
+```bash
+git clone https://github.com/darkanthem21/trabajo_bd.git
+cd trabajo_bd
+```
 
-1.  **Crear Ambiente Virtual:** Dentro de la carpeta raíz del proyecto (`trabajo_bd/`).:
+### 3.2. Configurar Entorno Virtual y Dependencias de Python
+Se recomienda encarecidamente utilizar un entorno virtual.
+
+1.  **Crear Entorno Virtual** (dentro de la carpeta raíz `trabajo_bd/`):
     ```bash
     python -m venv .venv
     ```
-2.  **Activar Ambiente Virtual:**
+2.  **Activar Entorno Virtual**:
     ```bash
     source venv/bin/activate
     ```
-3.  **Instalar Dependencias:**
+
+3.  **Instalar Dependencias**:
     ```bash
     pip install -r requirements.txt
     ```
 
+### 3.3. Configurar Variables de Entorno
+1.  Copia el archivo `.env_example` a un nuevo archivo llamado `.env` en la raíz del proyecto:
+    ```bash
+    cp .env_example .env
+    ```
 
+2.  Abre el archivo `.env` con un editor de texto y modifica las variables
+    ```ini
+    DB_NAME="lubricentro_db"
+    DB_USER="tu_usuario_postgres"
+    DB_PASS="tu_contraseña_postgres"
+    DB_HOST="localhost"
+    DB_PORT="5432"
+    ```
 
-### Paso 4: Configurar la Base de Datos PostgreSQL
+## 4. Configuración de la Base de Datos PostgreSQL
 
-1.  **Conectarse a PostgreSQL como Superusuario:**
+### 4.1. Crear Usuario y Base de Datos en PostgreSQL
+1.  **Conéctate a PostgreSQL como superusuario** :
     ```bash
     sudo -u postgres psql
     ```
-2.  **Crear el Rol (Usuario) para la Aplicación:** .
+
+2.  **Crea el Rol (Usuario)**
     ```sql
-    CREATE USER user WITH PASSWORD 'pass';
+    CREATE USER <tu_usuario_postgres> WITH PASSWORD '<tu_contraseña_postgres>';
     ```
 
-3.  **Crear la Base de Datos:**
+3.  **Crea la Base de Datos**
     ```sql
-    CREATE DATABASE lubricentro_db;
+    CREATE DATABASE lubricentro_db OWNER <tu_usuario_postgres>;
     ```
 
-4.  **Conectarse a la Nueva Base de Datos (aún como postgres) para los permisos al esquema:**
+4.  **Conéctate a la Nueva Base de Datos** (aún como superusuario `postgres` o un usuario con permisos) para otorgar privilegios:
     ```sql
     \c lubricentro_db
     ```
-
+    Otorga todos los privilegios sobre el esquema `public` al usuario del proyecto:
     ```sql
-    GRANT ALL ON SCHEMA public TO user;
+    GRANT ALL ON SCHEMA public TO <tu_usuario_postgres>;
     ```
 
-6.  **Salir de `psql`:**
+5.  **Sal de `psql`**:
     ```sql
     \q
     ```
 
-### Paso 6: Crear Estructura de Tablas (schema)
-
-1.  **conectarse a la base de datos:**
+### 4.2. Crear Esquema de Tablas
+1.  **Conéctate a tu base de datos** con el usuario que creaste para el proyecto:
     ```bash
-    psql -U user -d lubricentro_db -h localhost
+    psql -U tu_usuario_de_bd -d lubricentro_db -h localhost
+    # Reemplaza tu_usuario_de_bd por el valor de DB_USER en tu .env
     ```
+    Se te pedirá la contraseña que estableciste para este usuario.
 
-2.  **ejecutar el archivo para crear las tablas:**
+2.  **Ejecuta el script SQL para crear las tablas**:
     ```sql
-    \i sql/crear_base_v2.sql
+    \i sql/crear_basev2.sql
     ```
 
-3.  **se pueden revisar las tablas con:**
+3.  **Verifica las tablas creadas** (opcional):
     ```sql
     \dt
     ```
 
-4.  **Salir:**
+4.  **Sal de `psql`**:
     ```sql
     \q
     ```
-### Paso 7: Configurar Variables de Entorno
-1.  **Crear archivo `.env`:** REVISAR (`.env_example`)
 
-### Paso 8: Poblar la Base de Datos con Datos de Prueba
-1.  **Revisar estar e la raiz del directorio y con el ambiente activado (ya me equivoque mucho) **.
-2.  **Ejecuta el script de inserción:**
+### 4.3. Poblar la Base de Datos con Datos de Prueba
+1.  Asegúrate de estar en el directorio raíz del proyecto (`trabajo_bd/`) y que tu entorno virtual esté activado.
+2.  Ejecuta el script de inserción:
     ```bash
-    python sql/inserts.py
+    python src/inserts.py
     ```
+    Esto llenará las tablas con datos ficticios para los años definidos en el script (por defecto 2023-2025) Se pueden alterar los parametros  `src/inserts.py`. (anio, nro de fabricantes, etc)
+
+## 5. Uso del Programa de Análisis
+
+### 8.1. Ejecutar el Análisis
+Para generar los informes y gráficos:
+
+1.  Asegúrate de estar en el directorio raíz del proyecto (`trabajo_bd/`).
+2.  Asegúrate de que tu entorno virtual (`.venv`) esté activado.
+
+3.  Ejecuta el script `src/main.py` pasando el año que deseas analizar como argumento:
+    ```bash
+    python src/main.py <año>
+    ```
+    Por ejemplo, para analizar el año 2024:
+    ```bash
+    python src/main.py 2024
+    ```
+
+### 8.2. Salida
+**REVISAR  `trabajo_bd/output`)**
+## 9. Diagrama de la Base de Datos
+
+`![Diagrama de Base de Datos](diagrama_db.png)`
+
+Asegúrate de añadir el archivo de imagen a tu repositorio.
+
+---
