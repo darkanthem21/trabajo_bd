@@ -141,7 +141,7 @@ Para generar los informes y gráficos:
 **REVISAR  `trabajo_bd/output`)**
 ## 9. Diagrama de la Base de Datos
 
-`![Diagrama de Base de Datos](diagrama_db.png)`
+![Diagrama de Base de Datos](diagrama_db.png "Diagrama")
 
 Asegúrate de añadir el archivo de imagen a tu repositorio.
 
