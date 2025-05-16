@@ -1,22 +1,24 @@
 import psycopg2
 import random
 import os
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime, timedelta
-
 import src.config as config
 from src.database import get_db_connection
 
-N_FABRICANTES = 3
-N_CATEGORIAS = 4
-N_UBICACIONES = 5
-N_CLIENTES = 10
-N_PRODUCTOS = 20
-N_VENTAS = 50
-N_MOV_STOCK_OTROS = 30
+
+N_FABRICANTES = 10
+N_CATEGORIAS = 7
+N_UBICACIONES = 10
+N_CLIENTES = 100
+N_PRODUCTOS = 34
+N_VENTAS = 480
+N_MOV_STOCK_OTROS = 80
 AÑO_INICIO_SIM = 2023
 AÑO_FIN_SIM = 2025
 CODIGOS_MOVIMIENTO_ESPERADOS = [
-    'ENTRADA_INI', 'SALIDA_VTA', 'ENTRADA_COMPRA',
+    'SALIDA_VTA', 'ENTRADA_COMPRA',
     'AJUSTE_INV_POS', 'AJUSTE_INV_NEG'
 ]
 
