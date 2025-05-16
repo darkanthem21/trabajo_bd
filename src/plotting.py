@@ -73,12 +73,12 @@ def graficar_ventas_por_categoria(df_ventas_categoria: pd.DataFrame, filename: s
         print(f"INFO: No hay datos de ventas por categoría para el año {year} para graficar.")
         return
 
-    plt.figure(figsize=(12, 7)) # Ancho mayor si hay varias categorías
+    plt.figure(figsize=(12, 7))
     sns.barplot(x='nombre_categoria', y='ventas_totales_categoria', data=df_ventas_categoria, palette="magma", hue='nombre_categoria', dodge=False, legend=False)
     plt.title(f'Ventas Totales por Categoría de Producto - Año {year}', fontsize=16)
     plt.xlabel('Categoría', fontsize=12)
     plt.ylabel('Ventas Totales (CLP)', fontsize=12)
-    plt.xticks(rotation=45, ha="right") # Rotar etiquetas si son largas
+    plt.xticks(rotation=45, ha="right")
     plt.grid(axis='y', linestyle='--')
     plt.tight_layout()
 
