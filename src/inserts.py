@@ -2,10 +2,9 @@ import psycopg2
 import random
 import os
 from datetime import datetime, timedelta
-import logging
 
 import src.config as config
-from src.database import get_db_connection # Usaremos la conexión centralizada
+from src.database import get_db_connection
 
 N_FABRICANTES = 3
 N_CATEGORIAS = 4
@@ -30,7 +29,6 @@ def generar_fecha_aleatoria(año_inicio=AÑO_INICIO_SIM, año_fin=AÑO_FIN_SIM):
     days_between_dates = time_between_dates.days
 
     if days_between_dates < 0:
-        logging.warning(f"El año de inicio ({año_inicio}) es posterior al año de fin ({año_fin}). Usando fecha de inicio.")
         return start_date
     if days_between_dates == 0:
         random_number_of_days = 0
@@ -58,7 +56,7 @@ def generar_rut_chileno():
     return f"{rut_base}-{dv_char}"
 
 def obtener_ids_tipos_movimiento(cursor) -> dict:
-    logging.info("Consultando IDs de tipos de movimiento desde dim_movimiento...")
+    print("revisando IDs de tipos de movimiento desde dim_movimiento")
     mov_type_ids = {}
     try:
         cursor.execute("SELECT id, tipo_movimiento FROM dim_movimiento;")
@@ -66,9 +64,9 @@ def obtener_ids_tipos_movimiento(cursor) -> dict:
         for row_id, tipo_mov in results: mov_type_ids[tipo_mov] = row_id
         missing = [c for c in CODIGOS_MOVIMIENTO_ESPERADOS if c not in mov_type_ids]
         if missing:
-            logging.warning(f"Faltan IDs para los siguientes tipos de movimiento esperados: {missing}")
+            print(f"Faltan IDs para los siguientes tipos de movimiento esperados: {missing}")
     except psycopg2.Error as e:
-        logging.error(f"Error al consultar dim_movimiento: {e}")
+        print(f"Error al consultar dim_movimiento: {e}")
         raise
     return mov_type_ids
 
@@ -76,22 +74,22 @@ def insertar_dimensiones_principales(cursor):
     fabricantes_ids, categorias_ids, ubicaciones_ids = [], [], []
     cliente_ids = list(range(1, N_CLIENTES + 1))
 
-    logging.info("Insertando fabricantes...")
+    print("Insertando fabricantes...")
     fab_sql = "INSERT INTO fabricantes (nombre_fabricante) VALUES (%s) RETURNING fabricante_id;"
     for i in range(1, N_FABRICANTES + 1):
         cursor.execute(fab_sql, (f'Fabricante_{i}',)); fabricantes_ids.append(cursor.fetchone()[0])
 
-    logging.info("Insertando categorías...")
+    print("Insertando categorías...")
     cat_sql = "INSERT INTO categorias (nombre_categoria) VALUES (%s) RETURNING categoria_id;"
     for i in range(1, N_CATEGORIAS + 1):
         cursor.execute(cat_sql, (f'Categoría_{i}',)); categorias_ids.append(cursor.fetchone()[0])
 
-    logging.info("Insertando ubicaciones...")
+    print("Insertando ubicaciones...")
     ubi_sql = "INSERT INTO ubicaciones (codigo_ubicacion, descripcion_ubicacion) VALUES (%s, %s) RETURNING ubicacion_id;"
     for i in range(1, N_UBICACIONES + 1):
         cursor.execute(ubi_sql, (f'UB{i:03}', f'Bodega {i}')); ubicaciones_ids.append(cursor.fetchone()[0])
 
-    logging.info("Insertando clientes (con RUT)...")
+    print("Insertando clientes (con RUT)...")
     cli_sql = "INSERT INTO cliente (cliente_id, rut, nombre_cliente) VALUES (%s, %s, %s);"
     clientes_data = []
     ruts_generados = set()
@@ -102,12 +100,12 @@ def insertar_dimensiones_principales(cursor):
         clientes_data.append((i, rut, f'Cliente Nombre{i} Apellido{i}'))
     cursor.executemany(cli_sql, clientes_data)
 
-    logging.info("Dimensiones principales insertadas.")
+    print("Dimensiones principales insertadas.")
     return fabricantes_ids, categorias_ids, ubicaciones_ids, cliente_ids
 
 def insertar_productos(cursor, fabricantes_ids, categorias_ids, ubicaciones_ids):
     producto_ids = list(range(1, N_PRODUCTOS + 1)) # Definir IDs de producto aquí
-    logging.info("Insertando productos (precios/costos en CLP)...")
+    print("Insertando productos (precios/costos en CLP)...")
     productos_data = []
     for i in producto_ids:
         nombre = f'Aceite Sintético {i}W{random.choice([30, 40])}' if i % 2 == 0 else f'Filtro Aire Mod {i}'
@@ -124,7 +122,7 @@ def insertar_productos(cursor, fabricantes_ids, categorias_ids, ubicaciones_ids)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
     """
     cursor.executemany(prod_sql, productos_data)
-    logging.info(f"{len(productos_data)} productos insertados.")
+    print(f"{len(productos_data)} productos insertados.")
     return producto_ids
 
 def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type_ids: dict):
@@ -135,10 +133,10 @@ def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type
     for prod_id, costo, precio in cursor.fetchall():
         productos_info[prod_id] = {'costo': int(costo or 0), 'precio': int(precio or 0)}
 
-    logging.info("Generando stock inicial...")
+    print("Generando stock inicial...")
     tipo_mov_id_ini = mov_type_ids.get('ENTRADA_INI')
     if tipo_mov_id_ini is None:
-        logging.error("ID de tipo de movimiento 'ENTRADA_INI' no encontrado en dim_movimiento.")
+        print("ID de tipo de movimiento 'ENTRADA_INI' no encontrado en dim_movimiento.")
         raise ValueError("ID 'ENTRADA_INI' no encontrado.")
     fecha_inicial = datetime(AÑO_INICIO_SIM, 1, 1, 10, 0, 0)
     for prod_id in producto_ids:
@@ -147,10 +145,10 @@ def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type
             ubi_id = random.choice(ubicaciones_ids) if random.random() > 0.1 else None
             stock_data.append((prod_id, fecha_inicial, ubi_id, tipo_mov_id_ini, cantidad_inicial))
 
-    logging.info("Simulando ventas y salidas de stock (CLP)...")
+    print("Simulando ventas y salidas de stock (CLP)...")
     tipo_mov_id_vta = mov_type_ids.get('SALIDA_VTA')
     if tipo_mov_id_vta is None:
-        logging.error("ID de tipo de movimiento 'SALIDA_VTA' no encontrado.")
+        print("ID de tipo de movimiento 'SALIDA_VTA' no encontrado.")
         raise ValueError("ID 'SALIDA_VTA' no encontrado.")
 
     for _ in range(1, N_VENTAS + 1):
@@ -160,7 +158,7 @@ def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type
         cli_id = random.choice(cliente_ids) if random.random() > 0.05 else None
         cantidad_venta = random.randint(1, 5)
         if prod_id not in productos_info:
-            logging.warning(f"Producto ID {prod_id} no encontrado en productos_info durante la simulación de ventas. Saltando esta venta.")
+            print(f"Producto ID {prod_id} no encontrado en productos_info durante la simulación de ventas. Saltando esta venta.")
             continue
 
         costo_unitario = productos_info[prod_id]['costo']
@@ -171,14 +169,14 @@ def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type
         ubi_id_venta = random.choice(ubicaciones_ids) if random.random() > 0.2 else None
         stock_data.append((prod_id, fecha_venta, ubi_id_venta, tipo_mov_id_vta, -cantidad_venta))
 
-    logging.info("Simulando otras entradas y ajustes de stock...")
+    print("Simulando otras entradas y ajustes de stock...")
     tipo_mov_compra_id = mov_type_ids.get('ENTRADA_COMPRA')
     tipo_mov_aj_pos_id = mov_type_ids.get('AJUSTE_INV_POS')
     tipo_mov_aj_neg_id = mov_type_ids.get('AJUSTE_INV_NEG')
 
     otros_tipos_ids = [id_mov for id_mov in [tipo_mov_compra_id, tipo_mov_aj_pos_id, tipo_mov_aj_neg_id] if id_mov is not None]
     if not otros_tipos_ids:
-        logging.warning("No se encontraron IDs para tipos de movimiento 'ENTRADA_COMPRA', 'AJUSTE_INV_POS', 'AJUSTE_INV_NEG'. No se simularán estos movimientos.")
+        print("No se encontraron IDs para tipos de movimiento 'ENTRADA_COMPRA', 'AJUSTE_INV_POS', 'AJUSTE_INV_NEG'. No se simularán estos movimientos.")
 
     for _ in range(1, N_MOV_STOCK_OTROS + 1):
          if not otros_tipos_ids: break
@@ -199,7 +197,7 @@ def insertar_hechos(cursor, producto_ids, cliente_ids, ubicaciones_ids, mov_type
     cursor.executemany(sql_stock, stock_data)
 
 def actualizar_stock_productos(cursor):
-    logging.info("Calculando y actualizando stock_actual en productos...")
+    print("Calculando y actualizando stock_actual en productos...")
     sql_update_stock = """
     WITH StockCalculado AS (
         SELECT producto_fk, SUM(cantidad) AS stock_calculado
@@ -214,54 +212,52 @@ def actualizar_stock_productos(cursor):
     """
     try:
         cursor.execute(sql_update_stock)
-        logging.info(f"  {cursor.rowcount} filas de productos actualizadas con stock calculado.")
+        print(f"  {cursor.rowcount} filas de productos actualizadas con stock calculado.")
         cursor.execute(sql_update_cero)
-        logging.info(f"  {cursor.rowcount} filas de productos actualizadas a stock 0 (sin movimientos).")
-        logging.info("Stock actual en tabla productos actualizado.")
+        print(f"  {cursor.rowcount} filas de productos actualizadas a stock 0 (sin movimientos).")
+        print("Stock actual en tabla productos actualizado.")
     except psycopg2.Error as e:
-        logging.error(f"ERROR al actualizar stock_actual en productos: {e}")
+        print(f"ERROR al actualizar stock_actual en productos: {e}")
         raise
 
 def main():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger(__name__)
     if not config.check_db_config():
-        logger.critical("Configuración de base de datos invalida. Revisa los logs")
+        print("Configuración de base de datos invalida. Revisa los logs")
         return
 
     conn = None
     try:
         conn = get_db_connection()
         if not conn:
-            logger.critical("No se pudo establecer conexión con la base de datos. Finalizando script.")
+            print("No se pudo establecer conexión con la base de datos. Finalizando script.")
             return
 
         with conn:
             with conn.cursor() as cursor:
-                logger.info("PASO 1: Obteniendo IDs de Tipos de Movimiento...")
+                print("PASO 1: Obteniendo IDs de Tipos de Movimiento...")
                 mov_type_ids = obtener_ids_tipos_movimiento(cursor)
                 if not all(c in mov_type_ids for c in ['ENTRADA_INI', 'SALIDA_VTA']): # Chequeo mínimo
-                     logger.error("No se encontraron todos los IDs de tipos de movimiento necesarios en 'dim_movimiento'.")
+                     print("No se encontraron todos los IDs de tipos de movimiento necesarios en 'dim_movimiento'.")
                      raise ValueError("Faltan IDs de tipos de movimiento esenciales.")
 
-                logger.info("PASO 2: Insertando Dimensiones Principales...")
+                print("PASO 2: Insertando Dimensiones Principales...")
                 f_ids, c_ids, u_ids, cli_ids = insertar_dimensiones_principales(cursor)
 
-                logger.info("PASO 3: Insertando Productos...")
+                print("PASO 3: Insertando Productos...")
                 p_ids = insertar_productos(cursor, f_ids, c_ids, u_ids)
 
-                logger.info("PASO 4: Insertando Hechos (Ventas y Stock)...")
+                print("PASO 4: Insertando Hechos (Ventas y Stock)...")
                 insertar_hechos(cursor, p_ids, cli_ids, u_ids, mov_type_ids)
 
-                logger.info("PASO 5: Actualizando stock_actual en productos...")
+                print("PASO 5: Actualizando stock_actual en productos...")
                 actualizar_stock_productos(cursor)
 
-    except Exception as error: # Otros errores inesperados
-        logger.error(f"Error Inesperado durante la inserción o actualización: {error}")
+    except Exception as error:
+        print(f"Error Inesperado durante la inserción o actualización: {error}")
     finally:
         if conn:
             conn.close()
-            logger.info("--- Conexión a la base de datos cerrada. ---")
+            print("--- Conexión a la base de datos cerrada. ---")
 
 if __name__ == "__main__":
     main()

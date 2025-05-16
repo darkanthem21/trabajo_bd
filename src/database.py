@@ -1,7 +1,6 @@
 import psycopg2
 import pandas as pd
 import src.config as config
-import logging
 
 def get_db_connection():
     """
@@ -22,10 +21,10 @@ def get_db_connection():
         )
         return conn
     except psycopg2.OperationalError as e:
-        logging.error(f"error al conectar con psycopg2: {e}")
+        print(f"error al conectar con psycopg2: {e}")
         return None
     except Exception as e:
-        logging.error(f"error al conectar con psycopg2: {e}")
+        print(f"error al conectar con psycopg2: {e}")
         return None
 
 def test_connection():
@@ -38,7 +37,7 @@ def test_connection():
             conn.close()
             return True
         except Exception as e:
-            logging.error(f"Error al cerrar conexión de prueba (psycopg2): {e}")
+            print(f"Error al cerrar conexión de prueba (psycopg2): {e}")
             return False
     else:
         return False
@@ -62,10 +61,10 @@ def execute_query(sql_query: str, params: dict = None) -> pd.DataFrame | None:
                 return pd.DataFrame()
 
     except psycopg2.Error as e:
-        logging.error(f"Error de Base de Datos (psycopg2) al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
+        print(f"Error de Base de Datos (psycopg2) al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
         return None
     except Exception as e:
-        logging.error(f"Error Inesperado al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
+        print(f"Error Inesperado al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
         return None
     finally:
         if conn:

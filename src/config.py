@@ -1,9 +1,6 @@
 import os
 from dotenv import load_dotenv
 import sys
-import logging
-
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def find_project_root(marker_file='.env'):
     """busca la raiz del proyecto encontrando el .env"""
@@ -22,7 +19,7 @@ if project_root:
     if load_dotenv(dotenv_path=dotenv_path):
         pass
     else:
-        logging.error(f"No se pudo cargar el archivo .env desde {dotenv_path}")
+        print("no se pudo crear el .env")
 else:
     if not load_dotenv():
         print("no existe el .env")
@@ -49,6 +46,6 @@ def check_db_config() -> bool:
     missing_vars = [name for name, value in essential_vars.items() if value is None]
 
     if missing_vars:
-        logging.error("faltan variable para conectarse a la base de datos, revisar .env")
+        print("faltan variables para conectarse a la base de datos, revisar .env")
         return False
     return True
