@@ -143,6 +143,5 @@ Para generar los informes y gráficos:
 
 ![Diagrama de Base de Datos](diagrama_db.png "Diagrama")
 
-Asegúrate de añadir el archivo de imagen a tu repositorio.
 
 ---
