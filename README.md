@@ -34,7 +34,7 @@ Se recomienda encarecidamente utilizar un entorno virtual.
     ```
 2.  **Activar Entorno Virtual**:
     ```bash
-    source venv/bin/activate
+    source .venv/bin/activate
     ```
 
 3.  **Instalar Dependencias**:
