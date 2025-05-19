@@ -29,18 +29,12 @@ def ejecutar_analisis_completo(year_analisis: int):
     analizar_evolucion_stock(year_analisis)
     analizar_distribucion_tipos_movimiento(year_analisis)
     analizar_ventas_por_cliente(year_analisis)
+    analizar_top_productos_vendidos_en_rango(year_analisis)
 
     print(f"\n============================================================")
     print(f"TODOS LOS ANÁLISIS PARA EL AÑO {year_analisis} HAN FINALIZADO.")
     print(f"Los gráficos se han guardado en la carpeta '{os.path.join(os.getcwd(), 'output')}'.")
     print(f"============================================================")
-
-def ejecutar_analisis_rango(fecha_inicio_str: str, fecha_fin_str: str):
-    """
-    Ejecuta el análisis de top productos vendidos en un rango de fechas.
-    """
-    analizar_top_productos_vendidos_en_rango(fecha_inicio_str, fecha_fin_str)
-
 
 if __name__ == "__main__":
     print("INFO: Verificando configuración de la base de datos...")
@@ -56,20 +50,17 @@ if __name__ == "__main__":
         sys.exit(1)
     print("INFO: Conexión a la base de datos exitosa.")
 
-    if len(sys.argv) == 3:
-        fecha_inicio = sys.argv[1]
-        fecha_fin = sys.argv[2]
-        ejecutar_analisis_rango(fecha_inicio, fecha_fin)
-    elif len(sys.argv) == 2:
+    if len(sys.argv) == 2:
         try:
             year_to_analyze = int(sys.argv[1])
             if not (AÑO_INICIO_SIM <= year_to_analyze <= AÑO_FIN_SIM):
-                raise ValueError("Año fuera de rango razonable.")
+                raise ValueError(f"El año debe estar entre {AÑO_INICIO_SIM} y {AÑO_FIN_SIM}.")
             ejecutar_analisis_completo(year_to_analyze)
         except ValueError as e:
-            print(f"ERROR: El año '{sys.argv[1]}' no es un número válido o está fuera de rango. {e}")
+            print(f"ERROR: El argumento '{sys.argv[1]}' no es un año válido o está fuera del rango permitido. {e}")
+            print("Uso: python src/main.py <año>")
             sys.exit(1)
     else:
-        print("ERROR: Debes proporcionar el año o un rango de fechas (YYYY-MM-DD) como argumento.")
-        print("Uso: python src/main.py <año>  o  python src/main.py <fecha_inicio> <fecha_fin>")
+        print("ERROR: Debes proporcionar exactamente un argumento: el año para el análisis.")
+        print("Uso: python src/main.py <año>")
         sys.exit(1)

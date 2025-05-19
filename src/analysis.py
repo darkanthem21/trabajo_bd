@@ -123,31 +123,69 @@ def analizar_distribucion_tipos_movimiento(year: int):
         print(f"ERROR: No se pudieron obtener los datos de distribución de tipos de movimiento para el año {year}.")
     print("--- Análisis: Distribución de Tipos de Movimiento de Stock finalizado ---")
 
-def analizar_top_productos_vendidos_en_rango(fecha_inicio: str, fecha_fin: str):
+def analizar_top_productos_vendidos_en_rango(year: int):
+    from datetime import datetime
     """
-    Obtiene los top 10 productos más vendidos en un rango de fechas y genera el gráfico.
+    Obtiene los top 10 productos más vendidos en un rango de fechas dentro del año especificado.
+    El mes y día para el inicio y fin del rango se solicitan por terminal.
+    """
+    print(f"\n--- Iniciando análisis interactivo: Top 10 Productos Vendidos en Rango para el año {year} ---")
+    print(f"Se le solicitará el mes y día para definir el rango dentro del año {year}.")
 
-    Args:
-        fecha_inicio (str): Fecha de inicio del rango (YYYY-MM-DD).
-        fecha_fin (str): Fecha de fin del rango (YYYY-MM-DD).
-    """
-    print(f"\n--- Iniciando análisis: Top 10 Productos Vendidos ({fecha_inicio} a {fecha_fin}) ---")
-    params = {'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin}
-    print(f"DEBUG: params type: {type(params)}, value: {params}")
+    fecha_inicio_dt = None
+    fecha_fin_dt = None
+
+    while True:
+        try:
+            mes_inicio_str = input(f"  Ingrese el MES de INICIO del rango (1-12) para {year}: ")
+            mes_inicio = int(mes_inicio_str)
+            dia_inicio_str = input(f"  Ingrese el DÍA de INICIO del rango para el mes {mes_inicio}/{year}: ")
+            dia_inicio = int(dia_inicio_str)
+
+            fecha_inicio_dt = datetime(year, mes_inicio, dia_inicio)
+            fecha_inicio_str = fecha_inicio_dt.strftime('%Y-%m-%d')
+            break
+        except ValueError:
+            print("  Valor inválido para mes o día. Asegúrese de que el mes esté entre 1-12 y el día sea válido para ese mes y año.")
+        except Exception as e:
+            print(f"  Error inesperado al procesar la fecha de inicio: {e}")
+
+    while True:
+        try:
+            mes_fin_str = input(f"  Ingrese el MES de FIN del rango (1-12) para {year}: ")
+            mes_fin = int(mes_fin_str)
+            dia_fin_str = input(f"  Ingrese el DÍA de FIN del rango para el mes {mes_fin}/{year}: ")
+            dia_fin = int(dia_fin_str)
+
+            fecha_fin_dt = datetime(year, mes_fin, dia_fin)
+            if fecha_inicio_dt and fecha_fin_dt < fecha_inicio_dt:
+                print("  La fecha de fin no puede ser anterior a la fecha de inicio. Inténtelo de nuevo.")
+                continue
+            fecha_fin_str = fecha_fin_dt.strftime('%Y-%m-%d')
+            break
+        except ValueError:
+            print("  Valor inválido para mes o día. Asegúrese de que el mes esté entre 1-12 y el día sea válido para ese mes y año.")
+        except Exception as e:
+            print(f"  Error inesperado al procesar la fecha de fin: {e}")
+
+    print(f"Analizando productos más vendidos desde {fecha_inicio_str} hasta {fecha_fin_str}.")
+
+    params = {'fecha_inicio': fecha_inicio_str, 'fecha_fin': fecha_fin_str}
     df = execute_query(MAS_VENDIDO_FECHA_SQL, params)
 
     if df is not None:
         if not df.empty:
             df['total_vendido'] = pd.to_numeric(df['total_vendido'])
-            df.rename(columns={'total_vendido': 'cantidad_total_vendida'}, inplace=True)  # Renombrar la columna
-            filename = f"analisis_top_10_productos_vendidos_{fecha_inicio}_a_{fecha_fin}.png"
-            #  Llamar a la función de graficación (adaptada si es necesario)
-            graficar_top_productos_rango(df, filename, fecha_inicio, fecha_fin)
+            if 'total_vendido' in df.columns and 'cantidad_total_vendida' not in df.columns:
+                 df.rename(columns={'total_vendido': 'cantidad_total_vendida'}, inplace=True)
+
+            filename = f"analisis_top_10_productos_rango_{year}-{mes_inicio:02d}{dia_inicio:02d}_a_{year}-{mes_fin:02d}{dia_fin:02d}.png"
+            graficar_top_productos_rango(df, filename, fecha_inicio_str, fecha_fin_str)
         else:
-            print(f"INFO: No se encontraron datos de ventas en el rango {fecha_inicio} a {fecha_fin}.")
+            print(f"INFO: No se encontraron datos de ventas en el rango {fecha_inicio_str} a {fecha_fin_str}.")
     else:
-        print(f"ERROR: No se pudieron obtener los datos de ventas en el rango {fecha_inicio} a {fecha_fin}.")
-    print("--- Análisis: Top 10 Productos Vendidos finalizado ---")
+        print(f"ERROR: No se pudieron obtener los datos de ventas en el rango {fecha_inicio_str} a {fecha_fin_str}.")
+    print(f"--- Análisis: Top 10 Productos Vendidos en Rango ({fecha_inicio_str} a {fecha_fin_str}) finalizado ---")
 
 def analizar_ventas_por_cliente(year: int):
     """
