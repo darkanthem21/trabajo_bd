@@ -8,7 +8,7 @@ from src.analysis import (
     analizar_ventas_por_categoria,
     analizar_evolucion_stock,
     analizar_distribucion_tipos_movimiento
-    
+
 )
 from src.config import check_db_config
 from src.database import test_connection
@@ -25,7 +25,7 @@ def ejecutar_analisis_completo(year_analisis: int):
     analizar_ventas_por_mes(year_analisis)
     analizar_top_productos_vendidos(year_analisis)
     analizar_ventas_por_categoria(year_analisis)
-    #analizar_evolucion_stock(year_analisis)
+    analizar_evolucion_stock(year_analisis)
     analizar_distribucion_tipos_movimiento(year_analisis)
 
     print(f"\n============================================================")

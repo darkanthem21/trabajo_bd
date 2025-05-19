@@ -53,23 +53,25 @@ ORDER BY
 # Consulta 4: Evolución del stock total por día en un año dado (solo 2 columnas)
 STOCK_EVOLUCION_SQL = """
 SELECT
-p.nombre_articulo,
-DATE(hs.fecha) AS fecha,
-SUM(CASE
-WHEN dm.tipo_movimiento LIKE 'ENTRADA%' OR dm.tipo_movimiento = 'AJUSTE_INV_POS' THEN hs.cantidad
-ELSE -hs.cantidad
-END) AS variacion_stock
+    p.nombre_articulo,
+    DATE(hs.fecha) AS fecha,
+    SUM(CASE
+        WHEN dm.tipo_movimiento LIKE 'ENTRADA%%' OR dm.tipo_movimiento = 'AJUSTE_INV_POS' THEN hs.cantidad
+        ELSE -hs.cantidad
+    END) AS variacion_stock
 FROM
-hechos_stock hs
-JOIN productos p ON hs.producto_fk = p.producto_id
-JOIN dim_movimiento dm ON hs.tipo_movimiento_fk = dm.id
+    hechos_stock hs
+JOIN
+    productos p ON hs.producto_fk = p.producto_id
+JOIN
+    dim_movimiento dm ON hs.tipo_movimiento_fk = dm.id
 WHERE
-EXTRACT(YEAR FROM hs.fecha) = %(year)s
+    EXTRACT(YEAR FROM hs.fecha) = %(year)s
 GROUP BY
-p.nombre_articulo, DATE(hs.fecha)
+    p.nombre_articulo, DATE(hs.fecha)
 ORDER BY
-p.nombre_articulo, fecha;
-""" 
+    p.nombre_articulo, fecha;
+"""
 # Consulta 5 Distribucion de tipos de movimientode stock por año
 
 DISTRIBUCION_TIPOS_MOVIMIENTO_SQL = """SELECT
