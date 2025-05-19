@@ -87,3 +87,59 @@ def graficar_ventas_por_categoria(df_ventas_categoria: pd.DataFrame, filename: s
     except Exception as e:
         print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
     plt.close()
+
+def graficar_evolucion_stock(df_stock_evolucion: pd.DataFrame, filename: str, year: int):
+    """
+    Grafica la evolución diaria del stock por producto y guarda el gráfico.
+    """
+    if df_stock_evolucion.empty:
+        print(f"INFO: No hay datos de evolución de stock para el año {year} para graficar.")
+        return
+
+    plt.figure(figsize=(14, 7))
+    # Graficar una línea por producto
+    for producto, datos in df_stock_evolucion.groupby('nombre_articulo'):
+        datos_ordenados = datos.sort_values('fecha')
+        plt.plot(datos_ordenados['fecha'], datos_ordenados['variacion_stock'].cumsum(), marker='o', label=producto)
+
+    plt.title(f'Evolución del Stock por Producto - Año {year}', fontsize=16)
+    plt.xlabel('Fecha', fontsize=12)
+    plt.ylabel('Stock Acumulado', fontsize=12)
+    plt.legend(title="Producto", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        plt.savefig(filepath)
+        print(f"INFO: Gráfico guardado en '{filepath}'")
+    except Exception as e:
+        print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
+    plt.close()
+    
+def graficar_distribucion_tipos_movimiento(df_movimientos: pd.DataFrame, filename: str, year: int):
+    """
+    Grafica la distribución de tipos de movimiento de stock por mes en un gráfico de líneas y guarda el gráfico.
+    """
+    if df_movimientos.empty:
+        print(f"INFO: No hay datos de movimientos de stock para el año {year} para graficar.")
+        return
+
+    plt.figure(figsize=(14, 7))
+    # Pivot para tener los tipos de movimiento como columnas
+    df_pivot = df_movimientos.pivot(index='mes', columns='tipo_movimiento', values='total_movimiento').fillna(0)
+    df_pivot.index = pd.to_datetime(df_pivot.index)
+
+    df_pivot.plot(ax=plt.gca(), marker='o')
+    plt.title(f'Distribución de Tipos de Movimiento de Stock por Mes - Año {year}', fontsize=16)
+    plt.xlabel('Mes', fontsize=12)
+    plt.ylabel('Total Movimiento', fontsize=12)
+    plt.legend(title="Tipo de Movimiento", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        plt.savefig(filepath)
+        print(f"INFO: Gráfico guardado en '{filepath}'")
+    except Exception as e:
+        print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
+    plt.close()
