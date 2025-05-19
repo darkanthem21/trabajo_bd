@@ -88,3 +88,39 @@ GROUP BY
 ORDER BY
   mes, dm.tipo_movimiento;
 """
+
+# Consulta 6 Obtener los productos mas vendidos en rango de fechas
+MAS_VENDIDO_FECHA_SQL = """
+SELECT
+    p.nombre_articulo,
+    SUM(hv.cantidad) AS total_vendido
+FROM
+    hechos_ventas hv
+JOIN
+    productos p ON hv.producto_fk = p.producto_id
+WHERE
+    hv.fecha BETWEEN %(fecha_inicio)s AND %(fecha_fin)s  -- Usar parámetros
+GROUP BY
+    p.nombre_articulo
+ORDER BY
+    total_vendido DESC
+LIMIT 10;
+"""
+
+# Consulta 7
+
+VENTAS_POR_CLIENTE_SQL = """
+SELECT
+    c.nombre_cliente,
+    SUM(hv.total_venta) AS total_ventas
+FROM
+    hechos_ventas hv
+JOIN
+    cliente c ON hv.cliente_fk = c.cliente_id
+WHERE
+    EXTRACT(YEAR FROM hv.fecha) = %(year)s  -- Opcional: Filtrar por año
+GROUP BY
+    c.nombre_cliente
+ORDER BY
+    total_ventas DESC;
+"""

@@ -5,14 +5,18 @@ from src.queries import (
     TOP_PRODUCTOS_CANTIDAD_SQL,
     VENTAS_POR_CATEGORIA_SQL,
     STOCK_EVOLUCION_SQL,
-    DISTRIBUCION_TIPOS_MOVIMIENTO_SQL
+    DISTRIBUCION_TIPOS_MOVIMIENTO_SQL,
+    MAS_VENDIDO_FECHA_SQL,
+    VENTAS_POR_CLIENTE_SQL
 )
 from src.plotting import (
     graficar_ventas_por_mes,
     graficar_top_productos,
     graficar_ventas_por_categoria,
     graficar_evolucion_stock,
-    graficar_distribucion_tipos_movimiento
+    graficar_distribucion_tipos_movimiento,
+    graficar_top_productos_rango,
+    graficar_ventas_por_cliente
 )
 import src.config
 
@@ -118,3 +122,49 @@ def analizar_distribucion_tipos_movimiento(year: int):
     else:
         print(f"ERROR: No se pudieron obtener los datos de distribución de tipos de movimiento para el año {year}.")
     print("--- Análisis: Distribución de Tipos de Movimiento de Stock finalizado ---")
+
+def analizar_top_productos_vendidos_en_rango(fecha_inicio: str, fecha_fin: str):
+    """
+    Obtiene los top 10 productos más vendidos en un rango de fechas y genera el gráfico.
+
+    Args:
+        fecha_inicio (str): Fecha de inicio del rango (YYYY-MM-DD).
+        fecha_fin (str): Fecha de fin del rango (YYYY-MM-DD).
+    """
+    print(f"\n--- Iniciando análisis: Top 10 Productos Vendidos ({fecha_inicio} a {fecha_fin}) ---")
+    params = {'fecha_inicio': fecha_inicio, 'fecha_fin': fecha_fin}
+    print(f"DEBUG: params type: {type(params)}, value: {params}")
+    df = execute_query(MAS_VENDIDO_FECHA_SQL, params)
+
+    if df is not None:
+        if not df.empty:
+            df['total_vendido'] = pd.to_numeric(df['total_vendido'])
+            df.rename(columns={'total_vendido': 'cantidad_total_vendida'}, inplace=True)  # Renombrar la columna
+            filename = f"analisis_top_10_productos_vendidos_{fecha_inicio}_a_{fecha_fin}.png"
+            #  Llamar a la función de graficación (adaptada si es necesario)
+            graficar_top_productos_rango(df, filename, fecha_inicio, fecha_fin)
+        else:
+            print(f"INFO: No se encontraron datos de ventas en el rango {fecha_inicio} a {fecha_fin}.")
+    else:
+        print(f"ERROR: No se pudieron obtener los datos de ventas en el rango {fecha_inicio} a {fecha_fin}.")
+    print("--- Análisis: Top 10 Productos Vendidos finalizado ---")
+
+def analizar_ventas_por_cliente(year: int):
+    """
+    Obtiene el total de ventas por cliente para un año dado y genera el gráfico.
+    """
+    print(f"\n--- Iniciando análisis: Ventas por Cliente para el año {year} ---")
+    params = {'year': year}
+    print(f"DEBUG: params type: {type(params)}, value: {params}")
+    df = execute_query(VENTAS_POR_CLIENTE_SQL, params)
+
+    if df is not None:
+        if not df.empty:
+            df['total_ventas'] = pd.to_numeric(df['total_ventas'])
+            filename = f"analisis_ventas_por_cliente_{year}.png"
+            graficar_ventas_por_cliente(df, filename, year)
+        else:
+            print(f"INFO: No se encontraron datos de ventas por cliente para el año {year}.")
+    else:
+        print(f"ERROR: No se pudieron obtener los datos de ventas por cliente para el año {year}.")
+    print("--- Análisis: Ventas por Cliente finalizado ---")

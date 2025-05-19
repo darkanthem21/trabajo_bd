@@ -115,7 +115,7 @@ def graficar_evolucion_stock(df_stock_evolucion: pd.DataFrame, filename: str, ye
     except Exception as e:
         print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
     plt.close()
-    
+
 def graficar_distribucion_tipos_movimiento(df_movimientos: pd.DataFrame, filename: str, year: int):
     """
     Grafica la distribución de tipos de movimiento de stock por mes en un gráfico de líneas y guarda el gráfico.
@@ -134,6 +134,59 @@ def graficar_distribucion_tipos_movimiento(df_movimientos: pd.DataFrame, filenam
     plt.xlabel('Mes', fontsize=12)
     plt.ylabel('Total Movimiento', fontsize=12)
     plt.legend(title="Tipo de Movimiento", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.tight_layout()
+
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        plt.savefig(filepath)
+        print(f"INFO: Gráfico guardado en '{filepath}'")
+    except Exception as e:
+        print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
+    plt.close()
+
+def graficar_top_productos_rango(df_top_productos: pd.DataFrame, filename: str, fecha_inicio: str, fecha_fin: str):
+    """
+    Grafica el top N de productos más vendidos en un rango de fechas y guarda el gráfico.
+
+    Args:
+        df_top_productos:  DataFrame con los datos de los productos más vendidos.
+        filename: Nombre del archivo para guardar el gráfico.
+        fecha_inicio: Fecha de inicio del rango para el título.
+        fecha_fin: Fecha de fin del rango para el título.
+    """
+    if df_top_productos.empty:
+        print(f"INFO: No hay datos de top productos para el rango {fecha_inicio} a {fecha_fin} para graficar.")
+        return
+
+    plt.figure(figsize=(10, 7))
+    sns.barplot(x='cantidad_total_vendida', y='nombre_articulo', data=df_top_productos, palette="coolwarm", hue='nombre_articulo', dodge=False, legend=False)
+    plt.title(f'Top {len(df_top_productos)} Productos Más Vendidos ({fecha_inicio} a {fecha_fin})', fontsize=16)  # Título dinámico
+    plt.xlabel('Cantidad Total Vendida', fontsize=12)
+    plt.ylabel('Producto', fontsize=12)
+    plt.tight_layout()
+
+    filepath = os.path.join(OUTPUT_DIR, filename)
+    try:
+        plt.savefig(filepath)
+        print(f"INFO: Gráfico guardado en '{filepath}'")
+    except Exception as e:
+        print(f"ERROR: No se pudo guardar el gráfico en '{filepath}'. Razón: {e}")
+    plt.close()
+
+def graficar_ventas_por_cliente(df_ventas_cliente: pd.DataFrame, filename: str, year: int):
+    """
+    Grafica el total de ventas por cliente.
+    """
+    if df_ventas_cliente.empty:
+        print(f"INFO: No hay datos de ventas por cliente para el año {year} para graficar.")
+        return
+
+    plt.figure(figsize=(12, 7))
+    sns.barplot(x='nombre_cliente', y='total_ventas', data=df_ventas_cliente, palette='viridis')
+    plt.title(f'Ventas Totales por Cliente - Año {year}', fontsize=16)
+    plt.xlabel('Cliente', fontsize=12)
+    plt.ylabel('Ventas Totales', fontsize=12)
+    plt.xticks(rotation=45, ha="right")  # Rotar las etiquetas para mejor legibilidad
     plt.tight_layout()
 
     filepath = os.path.join(OUTPUT_DIR, filename)
