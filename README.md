@@ -1,5 +1,19 @@
 # Análisis de Datos para Lubricentro "LUBRI-EXPRESS"
 
+## Enunciado
+
+- Se quiere modelar una base de datos para un Lubricentro. Se debe registrar la informacion de cada producto, incluyendo su nombre, SKU, costro, precio, strock actual y su ubicacion en bodega. Cada producto se relaciona con una categoria y un fabricante determinados. Las categorias clasifican los productos por tipo (Bebidas, Aceites, Aditivos, etc), mientras que los fabricantes identifican la empresa proveedora de cada articulo.
+
+* Cada producto se encuentra asociado a una ubicacion fisica (bodega).
+
+* Para controlar los movimientos del inventario se registra la fecha, cantidad, producto involucrado, su ubicacion y el tipo de movimiento. Los movimientos de stock tambien estan referenciados a ubicaciones especificas.
+
+* Los movimientos de stock, como ingresos, salidas u otros tipos, guardansu fecha de movimiento, la cantidad, el producto que se esta moviendo, su ubicacion y el tipo de movimiento realizado.
+
+* Se requiere mantener un registro de los clientes, incluyendo su identificación (RUT) y nombre, para luego asociarlos a las transacciones de venta.
+
+* Cada venta incluye datos como el numero de boleta, fecha, producto vendido, cliente, cantidad, precio unitario y total de la transacción. Estas ventas están relacionadas directamente con los clientes y productos involucrados.
+
 ## 1. Funcionamiento
 
 El programa principal (`src/main.py`) permite generar los siguientes análisis para un año determinado:
