@@ -11,3 +11,10 @@ presentacion.pdf
 crear_base.sql
 output/
 .ropeproject
+# Qt Files
+*.ui
+*.pyc
+*.rcc
+*__pycache__/
+.pytest_cache/
+.vscode/

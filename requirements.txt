@@ -3,3 +3,4 @@ python-dotenv
 seaborn
 matplotlib
 pandas
+PyQt6
