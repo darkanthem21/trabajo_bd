@@ -3,4 +3,5 @@ python-dotenv
 seaborn
 matplotlib
 pandas
-PyQt6
+flet
+python-dateutil

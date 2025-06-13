@@ -69,3 +69,45 @@ def execute_query(sql_query: str, params: dict = None) -> pd.DataFrame | None:
     finally:
         if conn:
             conn.close()
+
+def execute_mod_query(sql_query: str, params: tuple = None) -> tuple[bool, str]:
+    """
+    Ejecuta una consulta de modificación (INSERT, UPDATE, DELETE) en la base de datos.
+    Devuelve una tupla: (True/False si fue exitoso, mensaje de éxito o error).
+    """
+    conn = None
+    try:
+        conn = get_db_connection()
+        if not conn:
+            return (False, "No se pudo conectar a la base de datos.")
+        with conn.cursor() as cursor:
+            cursor.execute(sql_query, params)
+            conn.commit()
+            msg = f"Consulta de modificación ejecutada. Filas afectadas: {cursor.rowcount}"
+            print(f"INFO: {msg}")
+            return (True, msg)
+
+    except psycopg2.Error as e:
+        error_msg = f"Error de Base de Datos: {e.pgerror}"
+        print(f"{error_msg}\nSQL: {sql_query.strip()}\nParams: {params}")
+        if conn:
+            conn.rollback()
+        return (False, error_msg) # Devuelve el mensaje de error de la BD
+    except Exception as e:
+        error_msg = f"Error Inesperado: {e}"
+        print(f"{error_msg}\nSQL: {sql_query.strip()}\nParams: {params}")
+        if conn:
+            conn.rollback()
+        return (False, error_msg)
+    finally:
+        if conn:
+            conn.close()
+
+def get_next_product_id() -> int:
+    """
+    Calcula el siguiente ID de producto disponible encontrando el máximo actual y sumando 1.
+    """
+    df = execute_query("SELECT MAX(producto_id) as max_id FROM productos;")
+    if df is not None and not df.empty and df['max_id'][0] is not None:
+        return int(df['max_id'][0]) + 1
+    return 1

@@ -124,3 +124,29 @@ GROUP BY
 ORDER BY
     total_ventas DESC;
 """
+
+GET_ALL_PRODUCTS_SQL = """
+SELECT
+    producto_id,
+    nombre_articulo,
+    sku,
+    precio,
+    stock_actual
+FROM
+    productos
+ORDER BY
+    nombre_articulo;
+"""
+INSERT_PRODUCT_SQL = """
+INSERT INTO productos (producto_id, nombre_articulo, fabricante_fk, categoria_fk, sku, costo, precio, stock_actual, ubicacion_fk)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+"""
+DELETE_PRODUCT_SQL = "DELETE FROM productos WHERE producto_id = %s;"
+
+GET_PRODUCT_BY_ID_SQL = "SELECT * FROM productos WHERE producto_id = %s;"
+
+UPDATE_PRODUCT_SQL = """
+UPDATE productos
+SET nombre_articulo = %s, sku = %s, precio = %s, stock_actual = %s
+WHERE producto_id = %s;
+"""
