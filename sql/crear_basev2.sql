@@ -75,7 +75,6 @@ VALUES
   ('ENTRADA_COMPRA', 'Entrada por Compra a Proveedor'),
   ('AJUSTE_INV_POS', 'Ajuste de Inventario Positivo'),
   ('AJUSTE_INV_NEG', 'Ajuste de Inventario Negativo')
-ON CONFLICT (tipo_movimiento) DO NOTHING; -- Conflicto sobre el código UNIQUE, no sobre el ID serial
-
+ON CONFLICT (tipo_movimiento) DO NOTHING;
 
 \echo "Script crear_base_v2 (con RUT y nombres corregidos) ejecutado."

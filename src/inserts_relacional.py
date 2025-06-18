@@ -1,4 +1,4 @@
-# src/inserts_relacional.py
+# src/inserts_relacional.py - ACTUALIZADO PARA SOFT DELETE
 
 import sys
 import os
@@ -41,9 +41,8 @@ def insertar_clientes(conn, cantidad):
     conn.commit()
     print("Clientes insertados.")
 
-
 def insertar_productos(conn, cantidad):
-    """Inserta productos con nombres genéricos y SKUs estructurados."""
+    """Inserta productos con nombres genéricos y SKUs estructurados. Ahora incluye el campo eliminado."""
     with conn.cursor() as cursor:
         print(f"Insertando {cantidad} productos con SKUs consistentes...")
         cursor.execute("SELECT categoria_id, nombre FROM \"Categorias\";")
@@ -74,10 +73,11 @@ def insertar_productos(conn, cantidad):
             costo_unitario = precio_venta * round(random.uniform(0.6, 0.8), 2)
             stock = 0
 
-            params = (nombre, sku, costo_unitario, precio_venta, stock, cat_id, fab_id, random.choice(ubi_ids))
+            # Incluir el campo eliminado como FALSE por defecto
+            params = (nombre, sku, costo_unitario, precio_venta, stock, cat_id, fab_id, random.choice(ubi_ids), False)
             cursor.execute("""
-                INSERT INTO "Productos" (nombre, sku, costo_unitario, precio_venta, stock, categoria_id, fabricante_id, ubicacion_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                INSERT INTO "Productos" (nombre, sku, costo_unitario, precio_venta, stock, categoria_id, fabricante_id, ubicacion_id, eliminado)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
             """, params)
     conn.commit()
     print("Productos insertados.")
@@ -85,7 +85,8 @@ def insertar_productos(conn, cantidad):
 def registrar_movimientos_stock_inicial(conn):
     with conn.cursor() as cursor:
         print("Registrando stock inicial...")
-        cursor.execute("SELECT producto_id, ubicacion_id FROM \"Productos\";")
+        # Solo productos no eliminados
+        cursor.execute("SELECT producto_id, ubicacion_id FROM \"Productos\" WHERE eliminado = FALSE;")
         productos = cursor.fetchall()
         for prod_id, ubi_id in productos:
             cantidad_inicial = random.randint(20, 100)
@@ -99,7 +100,8 @@ def registrar_ventas_periodo(conn):
         print("Registrando ventas para el período de 3 años...")
         cursor.execute("SELECT rut FROM \"Clientes\";")
         cliente_ruts = [row[0] for row in cursor.fetchall()]
-        cursor.execute("SELECT producto_id, precio_venta FROM \"Productos\" WHERE stock > 0;")
+        # Solo productos no eliminados y con stock
+        cursor.execute("SELECT producto_id, precio_venta FROM \"Productos\" WHERE stock > 0 AND eliminado = FALSE;")
         productos_disponibles = cursor.fetchall()
         if not productos_disponibles:
             print("No hay productos con stock para vender.")
@@ -122,8 +124,11 @@ def registrar_ventas_periodo(conn):
                 for _ in range(num_productos_en_venta):
                     prod_id, precio = random.choice(productos_disponibles)
                     cantidad = random.randint(1, 5)
-                    cursor.execute("SELECT stock FROM \"Productos\" WHERE producto_id = %s;", (prod_id,))
-                    stock_actual = cursor.fetchone()[0]
+                    cursor.execute("SELECT stock FROM \"Productos\" WHERE producto_id = %s AND eliminado = FALSE;", (prod_id,))
+                    result = cursor.fetchone()
+                    if not result:
+                        continue
+                    stock_actual = result[0]
                     if stock_actual < cantidad:
                         continue
                     subtotal = cantidad * precio
@@ -136,6 +141,23 @@ def registrar_ventas_periodo(conn):
     conn.commit()
     print(f"Ventas registradas. Total aproximado: {total_ventas}")
 
+def simular_algunos_productos_eliminados(conn):
+    """Simula que algunos productos han sido marcados como eliminados para probar el soft delete."""
+    with conn.cursor() as cursor:
+        print("Simulando algunos productos eliminados...")
+        # Marcar aproximadamente el 10% de los productos como eliminados
+        cursor.execute("SELECT producto_id FROM \"Productos\" WHERE eliminado = FALSE ORDER BY RANDOM() LIMIT 20;")
+        productos_a_eliminar = cursor.fetchall()
+
+        for (prod_id,) in productos_a_eliminar:
+            cursor.execute("""
+                UPDATE "Productos"
+                SET eliminado = TRUE, fecha_eliminacion = CURRENT_TIMESTAMP
+                WHERE producto_id = %s;
+            """, (prod_id,))
+
+        print(f"Se marcaron {len(productos_a_eliminar)} productos como eliminados.")
+    conn.commit()
 
 if __name__ == "__main__":
     conn = get_db_connection()
@@ -147,6 +169,7 @@ if __name__ == "__main__":
             insertar_productos(conn, 200)
             registrar_movimientos_stock_inicial(conn)
             registrar_ventas_periodo(conn)
+            simular_algunos_productos_eliminados(conn)  # Nueva función para simular soft deletes
         except psycopg2.Error as e:
             print(f"Ocurrió un error de base de datos: {e}")
         finally:
