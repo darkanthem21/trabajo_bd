@@ -155,7 +155,7 @@ Para generar los informes y gráficos:
 **REVISAR  `trabajo_bd/output`)**
 ## 9. Diagrama de la Base de Datos
 
-![Diagrama de Base de Datos](diagrama_db_new.png)
+![Diagrama de Base de Datos](diagrama_db_transaccional.png)
 
 
 ---
