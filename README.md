@@ -1,29 +1,9 @@
-# Análisis de Datos para Lubricentro "LUBRI-EXPRESS"
-
-## Enunciado
-
-- Se quiere modelar una base de datos para un Lubricentro. Se debe registrar la informacion de cada producto, incluyendo su nombre, SKU, costro, precio, strock actual y su ubicacion en bodega. Cada producto se relaciona con una categoria y un fabricante determinados. Las categorias clasifican los productos por tipo (Bebidas, Aceites, Aditivos, etc), mientras que los fabricantes identifican la empresa proveedora de cada articulo.
-
-* Cada producto se encuentra asociado a una ubicacion fisica (bodega).
-
-* Para controlar los movimientos del inventario se registra la fecha, cantidad, producto involucrado, su ubicacion y el tipo de movimiento. Los movimientos de stock tambien estan referenciados a ubicaciones especificas.
-
-* Los movimientos de stock, como ingresos, salidas u otros tipos, guardansu fecha de movimiento, la cantidad, el producto que se esta moviendo, su ubicacion y el tipo de movimiento realizado.
-
-* Se requiere mantener un registro de los clientes, incluyendo su identificación (RUT) y nombre, para luego asociarlos a las transacciones de venta.
-
-* Cada venta incluye datos como el numero de boleta, fecha, producto vendido, cliente, cantidad, precio unitario y total de la transacción. Estas ventas están relacionadas directamente con los clientes y productos involucrados.
+# Interfaz CRUD para Modelo transaccional-relacional
 
 ## 1. Funcionamiento
 
-El programa principal (`src/main.py`) permite generar los siguientes análisis para un año determinado:
+El programa principal (`src/gui.py`) Muestra la interfaz que se creo para realizar operaciones CRUD sobre nuestra base de datos transaccional-relacional 
 
-* Ventas totales por mes.
-* Top 5 productos más vendidos (por cantidad).
-* Ventas totales por categoría de producto.
-* Faltan otras 6 (**PENDIENTEEEEE**)
-
-Los resultados de cada análisis se guardan como imágenes PNG en la carpeta `output/`.
 
 ## 2. Prerrequisitos
 
@@ -113,7 +93,7 @@ Se recomienda encarecidamente utilizar un entorno virtual.
 
 2.  **Ejecuta el script SQL para crear las tablas**:
     ```sql
-    \i sql/crear_basev2.sql
+    \i sql/crear_base_relacional.sql
     ```
 
 3.  **Verifica las tablas creadas** (opcional):
@@ -130,26 +110,14 @@ Se recomienda encarecidamente utilizar un entorno virtual.
 1.  Asegúrate de estar en el directorio raíz del proyecto (`trabajo_bd/`) y que tu entorno virtual esté activado.
 2.  Ejecuta el script de inserción:
     ```bash
-    python src/inserts.py
+    python src/inserts_relacional.py
     ```
-    Esto llenará las tablas con datos ficticios para los años definidos en el script (por defecto 2023-2025) Se pueden alterar los parametros  `src/inserts.py`. (anio, nro de fabricantes, etc)
-
-## 5. Uso del Programa de Análisis
-
-### 8.1. Ejecutar el Análisis
-Para generar los informes y gráficos:
-
-1.  Asegúrate de estar en el directorio raíz del proyecto (`trabajo_bd/`).
-2.  Asegúrate de que tu entorno virtual (`.venv`) esté activado.
-
-3.  Ejecuta el script `src/main.py` pasando el año que deseas analizar como argumento:
+    Esto llenará las tablas con datos ficticios para los años definidos en el script (por defecto 2023-2025) Se pueden alterar los parametros  `src/inserts_relacional.py`. (anio, nro de fabricantes, etc)
+3. Ejecuta el archivo con la interfaz:
     ```bash
-    python src/main.py <año>
+    python src/gui.py
     ```
-    Por ejemplo, para analizar el año 2024:
-    ```bash
-    python src/main.py 2024
-    ```
+
 
 ### 8.2. Salida
 **REVISAR  `trabajo_bd/output`)**
