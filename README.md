@@ -119,8 +119,6 @@ Se recomienda encarecidamente utilizar un entorno virtual.
     ```
 
 
-### 8.2. Salida
-**REVISAR  `trabajo_bd/output`)**
 ## 9. Diagrama de la Base de Datos
 
 ![Diagrama de Base de Datos](diagrama_db_transaccional.png)
