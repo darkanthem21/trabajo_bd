@@ -319,37 +319,18 @@ def main(page: ft.Page):
     def confirmed_delete_products(e):
         product_id = e.control.data
 
-        # Verificar si el producto está en ventas
-        df_check = execute_query(CHECK_PRODUCT_IN_SALES_SQL, (product_id,))
-        if df_check is not None and not df_check.empty and df_check['total'][0] > 0:
-            # Soft delete
-            success, message = execute_mod_query(SOFT_DELETE_PRODUCT_SQL, (product_id,))
-            if success:
-                page.snack_bar = ft.SnackBar(
-                    content=ft.Text(f"Producto ID {product_id} marcado como eliminado (está en ventas)"),
-                    bgcolor=ft.Colors.ORANGE
-                )
-            else:
-                page.snack_bar = ft.SnackBar(
-                    content=ft.Text(f"Error al eliminar: {message}"),
-                    bgcolor=ft.Colors.ERROR
-                )
-        else:
-            # Hard delete
-            success, message = execute_mod_query(HARD_DELETE_PRODUCT_SQL, (product_id,))
-            if success:
-                page.snack_bar = ft.SnackBar(
-                    content=ft.Text(f"Producto ID {product_id} eliminado completamente"),
-                    bgcolor=ft.Colors.GREEN
-                )
-            else:
-                page.snack_bar = ft.SnackBar(
-                    content=ft.Text(f"Error al eliminar: {message}"),
-                    bgcolor=ft.Colors.ERROR
-                )
-
+        success, message = execute_mod_query(SOFT_DELETE_PRODUCT_SQL, (product_id,))
         if success:
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(f"Producto ID {product_id} marcado como eliminado"),
+                bgcolor=ft.Colors.ORANGE
+            )
             load_products_data()
+        else:
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(f"Error al eliminar: {message}"),
+                bgcolor=ft.Colors.ERROR
+            )
 
         delete_confirm_card_products.visible = False
         page.snack_bar.open = True
@@ -379,14 +360,7 @@ def main(page: ft.Page):
         df_prod = execute_query(GET_PRODUCT_BY_ID_SQL, (product_id,))
         prod_name = df_prod['nombre'][0] if df_prod is not None and not df_prod.empty else ""
 
-        # Verificar si está en ventas
-        df_check = execute_query(CHECK_PRODUCT_IN_SALES_SQL, (product_id,))
-        in_sales = df_check is not None and not df_check.empty and df_check['total'][0] > 0
-
-        if in_sales:
-            delete_confirm_text_products.value = f"'{prod_name}' está en ventas. Se marcará como eliminado."
-        else:
-            delete_confirm_text_products.value = f"¿Seguro que quieres eliminar '{prod_name}' (ID: {product_id})?"
+        delete_confirm_text_products.value = f"¿Seguro que quieres eliminar '{prod_name}' (ID: {product_id})?"
 
         delete_confirm_button_products.data = product_id
         delete_confirm_card_products.visible = True

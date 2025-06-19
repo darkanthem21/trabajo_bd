@@ -1,5 +1,3 @@
-# src/inserts_relacional.py - ACTUALIZADO PARA SOFT DELETE
-
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -51,8 +49,20 @@ def insertar_productos(conn, cantidad):
         fabricantes = {row[0]: row[1] for row in cursor.fetchall()}
         cursor.execute("SELECT ubicacion_id FROM \"Ubicaciones\";")
         ubi_ids = [row[0] for row in cursor.fetchall()]
-        nombres_base = ["Kit de Mantenimiento", "Componente de Motor", "Sistema de Frenado", "Filtro de Alto Flujo", "Aceite Sintético Avanzado", "Batería de Larga Duración", "Amortiguador de Gas"]
-        modelos = ["Serie 100", "Pro-V", "XLT", "Gold Standard", "Eco-Max", "Ultra-Duty"]
+
+        # Nombres base específicos por categoría
+        nombres_por_categoria = {
+            "Aceites": ["Aceite Motor", "Aceite Sintético", "Aceite Mineral", "Aceite Transmisión", "Aceite Hidráulico"],
+            "Filtros": ["Filtro de Aceite", "Filtro de Aire", "Filtro de Combustible", "Filtro de Cabina", "Filtro Hidráulico"],
+            "Baterías": ["Batería", "Batería AGM", "Batería Gel", "Batería Alto Rendimiento", "Batería Estándar"],
+            "Amortiguadores": ["Amortiguador Delantero", "Amortiguador Trasero", "Amortiguador Gas", "Amortiguador Reforzado", "Kit Amortiguador"],
+            "Frenos": ["Pastillas de Freno", "Disco de Freno", "Kit de Frenos", "Líquido de Frenos", "Zapatas de Freno"],
+            "Correas": ["Correa de Distribución", "Correa Alternador", "Correa Poly-V", "Kit de Correas", "Correa de Accesorios"],
+            "Aditivos": ["Aditivo Motor", "Limpiador Inyectores", "Aditivo Radiador", "Aditivo Combustible", "Tratamiento Motor"]
+        }
+
+        modelos = ["Pro", "Premium", "Standard", "Heavy Duty", "Performance", "OEM"]
+        especificaciones = ["5W-30", "10W-40", "15W-40", "20W-50", "ATF", "DOT-4", "DOT-5", "Full Synthetic", "Semi-Synthetic"]
 
         sku_counters = {}
 
@@ -60,14 +70,32 @@ def insertar_productos(conn, cantidad):
             cat_id = random.choice(list(categorias.keys()))
             fab_id = random.choice(list(fabricantes.keys()))
 
+            categoria_nombre = categorias[cat_id]
+
             fab_prefix = fabricantes[fab_id][:3].upper()
             cat_prefix = categorias[cat_id][:3].upper()
-            combo_key = f"{fab_prefix}-{cat_prefix}"
+            combo_key = f"{fab_prefix}-{cat_prefix}"  # Cambiado el orden
+
             current_seq = sku_counters.get(combo_key, 0) + 1
             sku_counters[combo_key] = current_seq
             sku = f"{combo_key}-{current_seq:04d}"
 
-            nombre = f"{random.choice(nombres_base)} {random.choice(modelos)} {random.randint(100, 999)}"
+            # Generar nombre coherente con la categoría
+            nombre_base = random.choice(nombres_por_categoria.get(categoria_nombre, ["Producto"]))
+            modelo = random.choice(modelos)
+
+            # Para algunas categorías, agregar especificaciones
+            if categoria_nombre in ["Aceites", "Frenos"]:
+                spec = random.choice(especificaciones)
+                nombre = f"{nombre_base} {modelo} {spec}"
+            elif categoria_nombre == "Baterías":
+                amperes = random.choice([45, 55, 65, 75, 90, 100])
+                nombre = f"{nombre_base} {modelo} {amperes}Ah"
+            elif categoria_nombre == "Amortiguadores":
+                tipo_vehiculo = random.choice(["Sedan", "SUV", "Pickup", "Compacto"])
+                nombre = f"{nombre_base} {modelo} {tipo_vehiculo}"
+            else:
+                nombre = f"{nombre_base} {modelo} {random.randint(100, 999)}"
 
             precio_venta = random.randint(150, 800) * 100
             costo_unitario = precio_venta * round(random.uniform(0.6, 0.8), 2)

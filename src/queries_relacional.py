@@ -91,7 +91,6 @@ ORDER BY sku DESC
 LIMIT 1;
 """
 
-# NUEVAS QUERIES PARA GESTIÓN DE CATEGORÍAS
 GET_PAGINATED_CATEGORIAS_SQL = """
 SELECT categoria_id, nombre
 FROM "Categorias"
@@ -172,7 +171,11 @@ SELECT COUNT(*) as total FROM "Productos"
 WHERE fabricante_id = %s AND eliminado = FALSE;
 """
 
-# NUEVAS QUERIES PARA GESTIÓN DE UBICACIONES
+CHECK_CATEGORIA_IN_USE_SQL = """
+SELECT COUNT(*) as total FROM "Productos"
+WHERE categoria_id = %s AND eliminado = FALSE;
+"""
+
 GET_PAGINATED_UBICACIONES_SQL = """
 SELECT ubicacion_id, descripcion
 FROM "Ubicaciones"

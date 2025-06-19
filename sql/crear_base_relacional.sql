@@ -6,8 +6,6 @@ DROP TABLE IF EXISTS "Clientes";
 DROP TABLE IF EXISTS "Categorias";
 DROP TABLE IF EXISTS "Fabricantes";
 DROP TABLE IF EXISTS "Ubicaciones";
-
--- Tablas de Dimensiones / Catálogos
 CREATE TABLE "Categorias" (
   "categoria_id" SERIAL PRIMARY KEY,
   "nombre" VARCHAR(255) NOT NULL UNIQUE
@@ -66,11 +64,10 @@ CREATE TABLE "MovimientosInventario" (
   "producto_id" INT NOT NULL REFERENCES "Productos"("producto_id"),
   "ubicacion_id" INT REFERENCES "Ubicaciones"("ubicacion_id")
 );
--- Agregar campo para soft delete en productos
+
 ALTER TABLE "Productos" ADD COLUMN "eliminado" BOOLEAN DEFAULT FALSE;
 ALTER TABLE "Productos" ADD COLUMN "fecha_eliminacion" TIMESTAMP NULL;
 
--- Crear índice para mejorar rendimiento en consultas de productos activos
 CREATE INDEX idx_productos_eliminado ON "Productos"("eliminado") WHERE eliminado = FALSE;
 
 \echo "Script crear_base_relacional.sql ejecutado con éxito."
