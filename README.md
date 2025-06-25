@@ -1,127 +1,165 @@
-# Interfaz CRUD para Modelo transaccional-relacional
+# Lubricentro ETL, CRUD y Análisis
 
-## 1. Funcionamiento
+Este proyecto implementa un flujo completo de gestión y análisis de datos para un lubricentro, usando dos bases de datos PostgreSQL: una **transaccional** (operativa) y otra **estrella** (analítica/dimensional). Incluye scripts para poblar datos, migrar (ETL), análisis y una interfaz gráfica CRUD.
 
-El programa principal (`src/gui.py`) Muestra la interfaz que se creo para realizar operaciones CRUD sobre nuestra base de datos transaccional-relacional 
+---
 
+## 1. Flujo General del Proyecto
+
+1. **Base Transaccional**:
+   - Aquí se gestionan los datos operativos (productos, ventas, stock, etc).
+   - Puedes poblarla con datos de prueba usando el script `src/inserts_relacional.py` o la GUI.
+
+2. **ETL**:
+   - Migra los datos desde la base transaccional a la base estrella (dimensional) para análisis.
+   - Ejecuta el script `src/etl.py` para realizar la migración.
+
+3. **Base Estrella (Dimensional)**:
+   - Aquí se almacenan los datos ya transformados y listos para análisis y reportes.
+
+4. **Análisis y Reportes**:
+   - Ejecuta `src/main.py <año>` para generar gráficos y reportes automáticos sobre la base estrella.
+
+5. **Interfaz CRUD (GUI)**:
+   - Ejecuta `src/gui.py` para gestionar productos, categorías, fabricantes, ubicaciones, etc.
+   - La GUI opera sobre la base transaccional.
+
+---
 
 ## 2. Prerrequisitos
 
-* **Python**
-* **Git**
-* **PostgreSQL** (Servidor instalado y corriendo)
+- **Python 3.10+**
+- **Git**
+- **PostgreSQL** (servidor instalado y corriendo)
+
+---
 
 ## 3. Configuración del Entorno
 
 ### 3.1. Clonar el Repositorio
+
 ```bash
 git clone https://github.com/darkanthem21/trabajo_bd.git
 cd trabajo_bd
 ```
 
-### 3.2. Configurar Entorno Virtual y Dependencias de Python
-Se recomienda encarecidamente utilizar un entorno virtual.
+### 3.2. Crear y Activar Entorno Virtual
 
-1.  **Crear Entorno Virtual** (dentro de la carpeta raíz `trabajo_bd/`):
-    ```bash
-    python -m venv .venv
-    ```
-2.  **Activar Entorno Virtual**:
-    ```bash
-    source .venv/bin/activate
-    ```
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
 
-3.  **Instalar Dependencias**:
-    ```bash
-    pip install -r requirements.txt
-    ```
+### 3.3. Instalar Dependencias
 
-### 3.3. Configurar Variables de Entorno
-1.  Copia el archivo `.env_example` a un nuevo archivo llamado `.env` en la raíz del proyecto:
-    ```bash
-    cp .env_example .env
-    ```
+```bash
+pip install -r requirements.txt
+```
 
-2.  Abre el archivo `.env` con un editor de texto y modifica las variables
-    ```ini
-    DB_NAME="lubricentro_db"
-    DB_USER="tu_usuario_postgres"
-    DB_PASS="tu_contraseña_postgres"
-    DB_HOST="localhost"
-    DB_PORT="5432"
-    ```
+### 3.4. Configurar Variables de Entorno
 
-## 4. Configuración de la Base de Datos PostgreSQL
+Crea un archivo `.env` en la raíz del proyecto con la siguiente estructura (ajusta los valores según tu entorno):
 
-### 4.1. Crear Usuario y Base de Datos en PostgreSQL
-1.  **Conéctate a PostgreSQL como superusuario** :
-    ```bash
-    sudo -u postgres psql
-    ```
+```ini
+# Base de datos transaccional (operativa)
+DB_TRANS_NAME=nombre_base_transaccional
+DB_TRANS_USER=usuario
+DB_TRANS_PASS=clave
+DB_TRANS_HOST=localhost
+DB_TRANS_PORT=5432
 
-2.  **Crea el Rol (Usuario)**
-    ```sql
-    CREATE USER <tu_usuario_postgres> WITH PASSWORD '<tu_contraseña_postgres>';
-    ```
+# Base de datos estrella (analítica)
+DB_STAR_NAME=nombre_base_estrella
+DB_STAR_USER=usuario
+DB_STAR_PASS=clave
+DB_STAR_HOST=localhost
+DB_STAR_PORT=5432
+```
 
-3.  **Crea la Base de Datos**
-    ```sql
-    CREATE DATABASE lubricentro_db OWNER <tu_usuario_postgres>;
-    ```
+---
 
-4.  **Conéctate a la Nueva Base de Datos** (aún como superusuario `postgres` o un usuario con permisos) para otorgar privilegios:
-    ```sql
-    \c lubricentro_db
-    ```
-    Otorga todos los privilegios sobre el esquema `public` al usuario del proyecto:
-    ```sql
-    GRANT ALL ON SCHEMA public TO <tu_usuario_postgres>;
-    ```
+## 4. Configuración de las Bases de Datos PostgreSQL
 
-5.  **Sal de `psql`**:
-    ```sql
-    \q
-    ```
+### 4.1. Crear Usuario y Bases de Datos
+
+Conéctate a PostgreSQL como superusuario:
+
+```bash
+sudo -u postgres psql
+```
+
+2.  **Crea el usuario y las dos bases de datos** (transaccional y estrella):
+
+```sql
+CREATE USER tu_usuario WITH PASSWORD 'tu_clave';
+CREATE DATABASE lubricentro_db_transaccional OWNER tu_usuario;
+CREATE DATABASE lubricentro_db_estrella OWNER tu_usuario;
+```
+
+Otorga privilegios si es necesario:
+
+```sql
+GRANT ALL ON SCHEMA public TO tu_usuario;
+```
+
+Sal de `psql` con `\q`.
 
 ### 4.2. Crear Esquema de Tablas
-1.  **Conéctate a tu base de datos** con el usuario que creaste para el proyecto:
-    ```bash
-    psql -U tu_usuario_de_bd -d lubricentro_db -h localhost
-    # Reemplaza tu_usuario_de_bd por el valor de DB_USER en tu .env
-    ```
-    Se te pedirá la contraseña que estableciste para este usuario.
 
-2.  **Ejecuta el script SQL para crear las tablas**:
-    ```sql
-    \i sql/crear_base_relacional.sql
-    ```
+- **Para la base transaccional:**
+  Conéctate y ejecuta el script de creación de tablas relacionales:
+  ```bash
+  psql -U tu_usuario -d lubricentro_db_transaccional -h localhost
+  \i sql/crear_base_relacional.sql
+  ```
 
-3.  **Verifica las tablas creadas** (opcional):
-    ```sql
-    \dt
-    ```
+- **Para la base estrella:**
+  Conéctate y ejecuta el script de creación de tablas dimensionales:
+  ```bash
+  psql -U tu_usuario -d lubricentro_db_estrella -h localhost
+  \i sql/crear_base_estrella.sql
+  ```
 
-4.  **Sal de `psql`**:
-    ```sql
-    \q
-    ```
+---
 
-### 4.3. Poblar la Base de Datos con Datos de Prueba
-1.  Asegúrate de estar en el directorio raíz del proyecto (`trabajo_bd/`) y que tu entorno virtual esté activado.
-2.  Ejecuta el script de inserción:
-    ```bash
-    python src/inserts_relacional.py
-    ```
-    Esto llenará las tablas con datos ficticios para los años definidos en el script (por defecto 2023-2025) Se pueden alterar los parametros  `src/inserts_relacional.py`. (anio, nro de fabricantes, etc)
-3. Ejecuta el archivo con la interfaz:
-    ```bash
-    python src/gui.py
-    ```
+## 5. Uso del Proyecto
 
+### 5.1. Poblar la Base Transaccional
 
-## 9. Diagrama de la Base de Datos
+```bash
+python src/inserts_relacional.py
+```
+Esto llenará la base transaccional con datos de prueba.
 
-![Diagrama de Base de Datos](diagrama_db_transaccional.png)
+### 5.2. Usar la Interfaz CRUD (GUI)
+
+```bash
+python src/gui.py
+```
+La GUI permite gestionar productos, categorías, fabricantes, ubicaciones, etc.
+**Opera sobre la base transaccional.**
+
+### 5.3. Migrar Datos a la Base Estrella (ETL)
+
+```bash
+python src/etl.py
+```
+Esto migra los datos desde la base transaccional a la estrella para análisis.
+
+### 5.4. Ejecutar Análisis y Reportes
+
+```bash
+python src/main.py <anio>
+```
+Esto genera gráficos y reportes automáticos para el año ingresado.
+Los gráficos se guardan en la carpeta `output/`.
+
+---
+
+## 6. Diagramas de la Base de Datos
+
+![Diagrama de base de datos (Transaccional)](diagrama_db_transaccional.png)
+![Diagrama de base de datos (Modelo estrella)](diagrama_db_new.png)
 
 
 ---

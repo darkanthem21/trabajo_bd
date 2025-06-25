@@ -2,29 +2,22 @@ import psycopg2
 import pandas as pd
 import src.config as config
 
-def get_db_connection():
+def get_db_connection(tipo="transaccional"):
     """
-    Establece y devuelve una conexión a la base de datos PostgreSQL usando psycopg2.
+    Establece y devuelve una conexión a la base de datos solicitada (por defecto transaccional/operativa).
     Devuelve None si la conexión falla.
     """
-    if not config.check_db_config():
-        return None
-
-    conn = None
     try:
+        db_conf = config.get_db_config(tipo)
         conn = psycopg2.connect(
-            dbname=config.DB_NAME,
-            user=config.DB_USER,
-            password=config.DB_PASS,
-            host=config.DB_HOST,
-            port=config.DB_PORT
+            dbname=db_conf['database'],
+            user=db_conf['user'],
+            password=db_conf['password'],
+            host=db_conf['host'],
+            port=db_conf['port']
         )
         return conn
-    except psycopg2.OperationalError as e:
-        print(f"error al conectar con psycopg2: {e}")
-        return None
-    except Exception as e:
-        print(f"error al conectar con psycopg2: {e}")
+    except Exception:
         return None
 
 def test_connection():
@@ -36,19 +29,19 @@ def test_connection():
         try:
             conn.close()
             return True
-        except Exception as e:
-            print(f"Error al cerrar conexión de prueba (psycopg2): {e}")
+        except Exception:
             return False
     else:
         return False
 
-def execute_query(sql_query: str, params: dict = None) -> pd.DataFrame | None:
+def execute_query(sql_query: str, params: dict = None, tipo: str = "transaccional") -> pd.DataFrame | None:
     """
-    ejecuta una consulta sql, devuelve un df con el resultado (si la consulta no esta bien devuelve un df vacio)
+    Ejecuta una consulta SQL y devuelve un DataFrame con el resultado.
+    Por defecto usa la base transaccional.
     """
     conn = None
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(tipo)
         if not conn:
             return None
         with conn.cursor() as cursor:
@@ -59,25 +52,21 @@ def execute_query(sql_query: str, params: dict = None) -> pd.DataFrame | None:
                 return pd.DataFrame(rows, columns=column_names)
             else:
                 return pd.DataFrame()
-
-    except psycopg2.Error as e:
-        print(f"Error de Base de Datos (psycopg2) al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
-        return None
-    except Exception as e:
-        print(f"Error Inesperado al ejecutar consulta SELECT: {e}\nSQL: {sql_query.strip()}\nParams: {params}")
+    except Exception:
         return None
     finally:
         if conn:
             conn.close()
 
-def execute_mod_query(sql_query: str, params: tuple = None) -> tuple[bool, str]:
+def execute_mod_query(sql_query: str, params: tuple = None, tipo: str = "transaccional") -> tuple[bool, str]:
     """
     Ejecuta una consulta de modificación (INSERT, UPDATE, DELETE) en la base de datos.
     Devuelve una tupla: (True/False si fue exitoso, mensaje de éxito o error).
+    Por defecto usa la base transaccional.
     """
     conn = None
     try:
-        conn = get_db_connection()
+        conn = get_db_connection(tipo)
         if not conn:
             return (False, "No se pudo conectar a la base de datos.")
         with conn.cursor() as cursor:
@@ -102,12 +91,3 @@ def execute_mod_query(sql_query: str, params: tuple = None) -> tuple[bool, str]:
     finally:
         if conn:
             conn.close()
-
-def get_next_product_id() -> int:
-    """
-    Calcula el siguiente ID de producto disponible encontrando el máximo actual y sumando 1.
-    """
-    df = execute_query("SELECT MAX(producto_id) as max_id FROM productos;")
-    if df is not None and not df.empty and df['max_id'][0] is not None:
-        return int(df['max_id'][0]) + 1
-    return 1

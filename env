@@ -1,5 +1,0 @@
-DB_NAME="lubricentro_db"
-DB_USER="moraga"
-DB_PASS="moraga"
-DB_HOST="localhost"
-DB_PORT="5432"

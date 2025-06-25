@@ -1,11 +1,18 @@
-DROP TABLE IF EXISTS "DetallesVenta";
-DROP TABLE IF EXISTS "Ventas";
-DROP TABLE IF EXISTS "MovimientosInventario";
-DROP TABLE IF EXISTS "Productos";
-DROP TABLE IF EXISTS "Clientes";
-DROP TABLE IF EXISTS "Categorias";
-DROP TABLE IF EXISTS "Fabricantes";
-DROP TABLE IF EXISTS "Ubicaciones";
+-- Crear Base Relacional Corregida
+-- Se mantiene la estructura original pero se asegura compatibilidad con ETL
+
+DROP TABLE IF EXISTS "DetallesVenta" CASCADE;
+DROP TABLE IF EXISTS "Ventas" CASCADE;
+DROP TABLE IF EXISTS "MovimientosInventario" CASCADE;
+DROP TABLE IF EXISTS "Productos" CASCADE;
+DROP TABLE IF EXISTS "Clientes" CASCADE;
+DROP TABLE IF EXISTS "Categorias" CASCADE;
+DROP TABLE IF EXISTS "Fabricantes" CASCADE;
+DROP TABLE IF EXISTS "Ubicaciones" CASCADE;
+
+-- Crear extensión para búsquedas sin acentos
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
 CREATE TABLE "Categorias" (
   "categoria_id" SERIAL PRIMARY KEY,
   "nombre" VARCHAR(255) NOT NULL UNIQUE
@@ -34,9 +41,11 @@ CREATE TABLE "Productos" (
   "costo_unitario" DECIMAL(12, 2) DEFAULT 0.00,
   "precio_venta" DECIMAL(12, 2) NOT NULL,
   "stock" INT NOT NULL DEFAULT 0,
-  "categoria_id" INT REFERENCES "Categorias"("categoria_id"),
-  "fabricante_id" INT REFERENCES "Fabricantes"("fabricante_id"),
-  "ubicacion_id" INT REFERENCES "Ubicaciones"("ubicacion_id")
+  "categoria_id" INT NOT NULL REFERENCES "Categorias"("categoria_id"),
+  "fabricante_id" INT NOT NULL REFERENCES "Fabricantes"("fabricante_id"),
+  "ubicacion_id" INT REFERENCES "Ubicaciones"("ubicacion_id"),
+  "eliminado" BOOLEAN DEFAULT FALSE,
+  "fecha_eliminacion" TIMESTAMP NULL
 );
 
 -- Tablas Transaccionales
@@ -59,15 +68,17 @@ CREATE TABLE "DetallesVenta" (
 CREATE TABLE "MovimientosInventario" (
   "movimiento_id" SERIAL PRIMARY KEY,
   "fecha_movimiento" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  "tipo" VARCHAR(50) NOT NULL, -- Ej: 'compra_proveedor', 'venta_cliente', 'ajuste_positivo', 'ajuste_negativo'
+  "tipo" VARCHAR(50) NOT NULL, -- 'compra_inicial', 'venta_cliente', 'compra_proveedor', 'ajuste_positivo', 'ajuste_negativo'
   "cantidad" INT NOT NULL,
   "producto_id" INT NOT NULL REFERENCES "Productos"("producto_id"),
   "ubicacion_id" INT REFERENCES "Ubicaciones"("ubicacion_id")
 );
 
-ALTER TABLE "Productos" ADD COLUMN "eliminado" BOOLEAN DEFAULT FALSE;
-ALTER TABLE "Productos" ADD COLUMN "fecha_eliminacion" TIMESTAMP NULL;
-
 CREATE INDEX idx_productos_eliminado ON "Productos"("eliminado") WHERE eliminado = FALSE;
+CREATE INDEX idx_productos_categoria ON "Productos"("categoria_id");
+CREATE INDEX idx_productos_fabricante ON "Productos"("fabricante_id");
+CREATE INDEX idx_ventas_fecha ON "Ventas"("fecha");
+CREATE INDEX idx_movimientos_fecha ON "MovimientosInventario"("fecha_movimiento");
+CREATE INDEX idx_movimientos_tipo ON "MovimientosInventario"("tipo");
 
 \echo "Script crear_base_relacional.sql ejecutado con éxito."

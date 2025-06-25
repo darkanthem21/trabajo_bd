@@ -1,9 +1,13 @@
+# ADVERTENCIA:
+# Este archivo espera que el .env contenga SOLO dos configuraciones de base de datos:
+# - DB_TRANS_*  (para la base transaccional/relacional)
+# - DB_STAR_*   (para la base dimensional/estrella)
+# No uses variables antiguas como DB_NAME, DB_USER, DB_ORIGEN_*, DB_DESTINO_*, etc.
+
 import os
 from dotenv import load_dotenv
-import sys
 
 def find_project_root(marker_file='.env'):
-    """busca la raiz del proyecto encontrando el .env"""
     current_dir = os.path.dirname(os.path.abspath(__file__))
     while True:
         if os.path.exists(os.path.join(current_dir, marker_file)):
@@ -16,36 +20,55 @@ def find_project_root(marker_file='.env'):
 project_root = find_project_root('.env')
 if project_root:
     dotenv_path = os.path.join(project_root, '.env')
-    if load_dotenv(dotenv_path=dotenv_path):
-        pass
-    else:
-        print("no se pudo crear el .env")
+    load_dotenv(dotenv_path=dotenv_path)
 else:
-    if not load_dotenv():
-        print("no existe el .env")
-        pass
+    load_dotenv()
 
+# Base de datos transaccional (relacional)
+DB_TRANS_NAME = os.getenv("DB_TRANS_NAME")
+DB_TRANS_USER = os.getenv("DB_TRANS_USER")
+DB_TRANS_PASS = os.getenv("DB_TRANS_PASS")
+DB_TRANS_HOST = os.getenv("DB_TRANS_HOST")
+DB_TRANS_PORT = os.getenv("DB_TRANS_PORT")
 
-DB_NAME = os.getenv("DB_NAME")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
+# Base de datos dimensional (estrella)
+DB_STAR_NAME = os.getenv("DB_STAR_NAME")
+DB_STAR_USER = os.getenv("DB_STAR_USER")
+DB_STAR_PASS = os.getenv("DB_STAR_PASS")
+DB_STAR_HOST = os.getenv("DB_STAR_HOST")
+DB_STAR_PORT = os.getenv("DB_STAR_PORT")
 
-def check_db_config() -> bool:
+def check_db_config(tipo="estrella"):
     """
-    revisa las variables del .env para asegurarse que no falte ninguna
+    Verifica que la configuración de la base de datos esté completa.
+    Por defecto revisa la base dimensional (estrella).
     """
-    essential_vars = {
-        "DB_NAME": DB_NAME,
-        "DB_USER": DB_USER,
-        "DB_PASS": DB_PASS,
-        "DB_HOST": DB_HOST,
-        "DB_PORT": DB_PORT
-    }
-    missing_vars = [name for name, value in essential_vars.items() if value is None]
+    if tipo == "transaccional":
+        required = [DB_TRANS_NAME, DB_TRANS_USER, DB_TRANS_PASS, DB_TRANS_HOST, DB_TRANS_PORT]
+    else:
+        required = [DB_STAR_NAME, DB_STAR_USER, DB_STAR_PASS, DB_STAR_HOST, DB_STAR_PORT]
+    return all(required)
 
-    if missing_vars:
-        print("faltan variables para conectarse a la base de datos, revisar .env")
-        return False
-    return True
+def get_db_config(tipo="estrella"):
+    """
+    Devuelve la configuración de conexión para la base solicitada.
+    tipo: 'transaccional' o 'estrella'
+    """
+    if tipo == "transaccional":
+        return {
+            'host': DB_TRANS_HOST,
+            'port': DB_TRANS_PORT,
+            'user': DB_TRANS_USER,
+            'password': DB_TRANS_PASS,
+            'database': DB_TRANS_NAME
+        }
+    elif tipo == "estrella":
+        return {
+            'host': DB_STAR_HOST,
+            'port': DB_STAR_PORT,
+            'user': DB_STAR_USER,
+            'password': DB_STAR_PASS,
+            'database': DB_STAR_NAME
+        }
+    else:
+        raise ValueError(f"Tipo de configuración inválido: {tipo}")

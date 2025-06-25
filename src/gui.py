@@ -208,7 +208,7 @@ def main(page: ft.Page):
         cat_prefix = cat_text[:3].upper()
         combo_key = f"{fab_prefix}-{cat_prefix}"
 
-        df_last_sku = execute_query(GET_LAST_SKU_SQL, (fab_id, cat_id))
+        df_last_sku = execute_query(GET_LAST_SKU_SQL, (fab_id, cat_id), tipo="transaccional")
         next_seq = 1
         if df_last_sku is not None and not df_last_sku.empty:
             last_sku = df_last_sku['sku'][0]
@@ -222,15 +222,15 @@ def main(page: ft.Page):
         bottom_sheet_products.update()
 
     def populate_dropdowns():
-        df_cat = execute_query(GET_ALL_CATEGORIAS_SQL)
+        df_cat = execute_query(GET_ALL_CATEGORIAS_SQL, tipo="transaccional")
         if df_cat is not None:
             categoria_dropdown.options = [ft.dropdown.Option(key=row['categoria_id'], text=row['nombre']) for _, row in df_cat.iterrows()]
 
-        df_fab = execute_query(GET_ALL_FABRICANTES_SQL)
+        df_fab = execute_query(GET_ALL_FABRICANTES_SQL, tipo="transaccional")
         if df_fab is not None:
             fabricante_dropdown.options = [ft.dropdown.Option(key=row['fabricante_id'], text=row['nombre']) for _, row in df_fab.iterrows()]
 
-        df_ubi = execute_query(GET_ALL_UBICACIONES_SQL)
+        df_ubi = execute_query(GET_ALL_UBICACIONES_SQL, tipo="transaccional")
         if df_ubi is not None:
             ubicacion_dropdown.options = [ft.dropdown.Option(key=row['ubicacion_id'], text=row['descripcion']) for _, row in df_ubi.iterrows()]
 
@@ -537,7 +537,7 @@ def main(page: ft.Page):
                 bgcolor=ft.Colors.ERROR
             )
         else:
-            success, message = execute_mod_query(DELETE_CATEGORIA_SQL, (categoria_id,))
+            success, message = execute_mod_query(DELETE_CATEGORIA_SQL, (categoria_id,), tipo="transaccional")
             if success:
                 page.snack_bar = ft.SnackBar(
                     content=ft.Text(f"Categoría ID {categoria_id} eliminada"),
@@ -757,7 +757,7 @@ def main(page: ft.Page):
                 bgcolor=ft.Colors.ERROR
             )
         else:
-            success, message = execute_mod_query(DELETE_FABRICANTE_SQL, (fabricante_id,))
+            success, message = execute_mod_query(DELETE_FABRICANTE_SQL, (fabricante_id,), tipo="transaccional")
             if success:
                 page.snack_bar = ft.SnackBar(
                     content=ft.Text(f"Fabricante ID {fabricante_id} eliminado"),
@@ -1153,7 +1153,8 @@ def main(page: ft.Page):
     load_products_data()
 
 if __name__ == "__main__":
+    # check_db_config ahora valida solo la base estrella (dimensional)
     if check_db_config():
         ft.app(target=main)
     else:
-        print("CRITICAL: La configuración de la base de datos es inválida.")
+        print("CRITICAL: La configuración de la base de datos dimensional (estrella) es inválida.")

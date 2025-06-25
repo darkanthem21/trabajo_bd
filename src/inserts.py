@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime, timedelta
 import src.config as config
-from src.database import get_db_connection
+from src.database import get_db_connection  # Ahora conecta a la base estrella (dimensional)
 
 
 N_FABRICANTES = 10
@@ -223,15 +223,12 @@ def actualizar_stock_productos(cursor):
         raise
 
 def main():
-    if not config.check_db_config():
-        print("Configuración de base de datos invalida. Revisa los logs")
-        return
-
+    # La función get_db_connection ahora conecta a la base estrella (dimensional)
     conn = None
     try:
         conn = get_db_connection()
         if not conn:
-            print("No se pudo establecer conexión con la base de datos. Finalizando script.")
+            print("No se pudo establecer conexión con la base de datos dimensional (estrella). Finalizando script.")
             return
 
         with conn:
