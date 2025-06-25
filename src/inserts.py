@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime, timedelta
 import src.config as config
-from src.database import get_db_connection  # Ahora conecta a la base estrella (dimensional)
+from src.database import get_db_connection
 
 
 N_FABRICANTES = 10
