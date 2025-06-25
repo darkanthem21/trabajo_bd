@@ -1,9 +1,3 @@
-# ADVERTENCIA:
-# Este archivo espera que el .env contenga SOLO dos configuraciones de base de datos:
-# - DB_TRANS_*  (para la base transaccional/relacional)
-# - DB_STAR_*   (para la base dimensional/estrella)
-# No uses variables antiguas como DB_NAME, DB_USER, DB_ORIGEN_*, DB_DESTINO_*, etc.
-
 import os
 from dotenv import load_dotenv
 

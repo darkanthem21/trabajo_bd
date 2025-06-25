@@ -1,3 +1,7 @@
+# Este módulo espera DataFrames con nombres de columnas alineados al modelo estrella puro:
+# - producto_id, nombre_articulo, categoria_id, nombre_categoria, etc.
+# - Las funciones de análisis deben entregar los datos ya preparados con estos nombres.
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns

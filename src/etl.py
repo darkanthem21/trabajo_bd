@@ -23,11 +23,11 @@ def limpiar_tablas_destino(conn_dest):
         for query in [
             TRUNCATE_HECHOS_STOCK,
             TRUNCATE_HECHOS_VENTAS,
-            TRUNCATE_PRODUCTOS,
-            TRUNCATE_CLIENTE,
-            TRUNCATE_UBICACIONES,
-            TRUNCATE_CATEGORIAS,
-            TRUNCATE_FABRICANTES
+            TRUNCATE_DIM_PRODUCTO,
+            TRUNCATE_DIM_CLIENTE,
+            TRUNCATE_DIM_UBICACION,
+            TRUNCATE_DIM_CATEGORIA,
+            TRUNCATE_DIM_FABRICANTE
         ]:
             cur.execute(query)
         conn_dest.commit()
@@ -85,19 +85,18 @@ def cargar_dimensiones(conn_dest, datos):
             cli_map[rut] = idx
 
         for prod in datos['productos']:
-            (producto_id, nombre, fabricante_id, categoria_id, sku, costo_unitario, precio_venta, stock, ubicacion_id) = prod
+            (producto_id, nombre, fabricante_id, categoria_id, sku, costo_unitario, precio_venta, ubicacion_id) = prod
             cur.execute(
                 INSERT_PRODUCTO_DESTINO_SQL,
                 (
                     producto_id,
                     nombre,
+                    sku,
                     fab_map.get(fabricante_id),
                     cat_map.get(categoria_id),
-                    sku,
+                    ubi_map.get(ubicacion_id),
                     costo_unitario,
-                    precio_venta,
-                    stock,
-                    ubi_map.get(ubicacion_id)
+                    precio_venta
                 )
             )
         conn_dest.commit()
@@ -110,18 +109,18 @@ def cargar_hechos(conn_dest, datos, cli_map, ubi_map, tipo_movimiento_ids):
             nro_boleta = int(''.join(filter(str.isdigit, str(boleta_numero))) or '0')
             cliente_id = cli_map.get(cliente_rut)
             total_venta = int(float(subtotal))
-            cur.execute("SELECT costo FROM productos WHERE producto_id = %s;", (prod_id,))
+            cur.execute("SELECT costo FROM dim_producto WHERE producto_id = %s;", (prod_id,))
             costo_unitario = cur.fetchone()[0]
             cur.execute(
                 INSERT_VENTA_DESTINO_SQL,
                 (
-                    nro_boleta,
-                    prod_id,
                     fecha,
+                    prod_id,
                     cliente_id,
                     cantidad,
                     costo_unitario,
-                    total_venta
+                    total_venta,
+                    nro_boleta
                 )
             )
         for mov in datos['movimientos']:
@@ -134,14 +133,16 @@ def cargar_hechos(conn_dest, datos, cli_map, ubi_map, tipo_movimiento_ids):
             cur.execute(
                 INSERT_MOVIMIENTO_STOCK_DESTINO_SQL,
                 (
-                    producto_id,
                     fecha_movimiento,
+                    producto_id,
                     ubi_map.get(ubicacion_id),
                     tipo_movimiento_fk,
                     cantidad
                 )
             )
         conn_dest.commit()
+
+
 
 def main():
     # No se requiere check_etl_config, solo se usan las dos bases del .env
@@ -156,6 +157,7 @@ def main():
     fab_map, cat_map, ubi_map, cli_map = cargar_dimensiones(conn_dest, datos)
     tipo_movimiento_ids = obtener_tipo_movimiento_ids(conn_dest)
     cargar_hechos(conn_dest, datos, cli_map, ubi_map, tipo_movimiento_ids)
+
     conn_origen.close()
     conn_dest.close()
     print("ETL completado exitosamente.")

@@ -400,12 +400,12 @@ def registrar_ventas_periodo(conn):
                             (cantidad, prod_id)
                         )
 
-                        # Registrar movimiento de inventario
+                        # Registrar movimiento de inventario (ventas deben ser negativas)
                         cursor.execute("""
                             INSERT INTO "MovimientosInventario"
                             (tipo, cantidad, producto_id, fecha_movimiento)
                             VALUES ('venta_cliente', %s, %s, %s);
-                        """, (cantidad, prod_id, fecha))
+                        """, (-cantidad, prod_id, fecha))
 
                         total_productos_vendidos += cantidad
 
@@ -586,6 +586,21 @@ def simular_algunos_productos_eliminados(conn):
         conn.commit()
         print(f"✅ {productos_eliminados} productos marcados como eliminados.")
 
+def actualizar_stock_productos(conn):
+    """Actualiza el campo stock de Productos como la suma de todos los movimientos de inventario"""
+    with conn.cursor() as cur:
+        print("🔄 Actualizando campo stock de Productos según movimientos...")
+        cur.execute("""
+            UPDATE "Productos" p
+            SET stock = COALESCE((
+                SELECT SUM(mi.cantidad)
+                FROM "MovimientosInventario" mi
+                WHERE mi.producto_id = p.producto_id
+            ), 0)
+        """)
+        conn.commit()
+        print("✅ Stock actualizado en todos los productos.")
+
 def validar_datos_insertados(conn):
     """Valida que los datos se insertaron correctamente"""
     with conn.cursor() as cursor:
@@ -628,7 +643,7 @@ def validar_datos_insertados(conn):
             print(f"  {tipo:.<25} {count:>10,}")
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
+    print(f"\n" + "="*60)
     print("🏪 POBLANDO BASE DE DATOS RELACIONAL - LUBRI-EXPRESS")
     print("="*60)
 
@@ -636,6 +651,11 @@ if __name__ == "__main__":
     if not conn:
         print("❌ No se pudo conectar a la base de datos")
         sys.exit(1)
+
+    # ... resto del código ...
+
+    # Al final del script, después de registrar todos los movimientos:
+    actualizar_stock_productos(conn)
     # Debug: mostrar DSN y search_path
     try:
         print("🔗 Conectado a:", conn.get_dsn_parameters())

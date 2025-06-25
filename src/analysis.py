@@ -210,7 +210,7 @@ def analizar_histograma_montos_venta():
     """
     print(f"\n--- Iniciando análisis: Histograma de Montos de Venta ---")
     from src.queries import HISTOGRAM_MONTOS_VENTA_SQL
-    df = execute_query(HISTOGRAM_MONTOS_VENTA_SQL)
+    df = execute_query(HISTOGRAM_MONTOS_VENTA_SQL, tipo="estrella")
     if df is not None and not df.empty:
         graficar_histograma_montos_venta(df, "histograma_montos_venta.png")
     else:
@@ -249,7 +249,7 @@ def analizar_boxplot_montos_venta():
     """
     print(f"\n--- Iniciando análisis: Boxplot de Montos de Venta ---")
     from src.queries import HISTOGRAM_MONTOS_VENTA_SQL
-    df = execute_query(HISTOGRAM_MONTOS_VENTA_SQL)
+    df = execute_query(HISTOGRAM_MONTOS_VENTA_SQL, tipo="estrella")
     if df is not None and not df.empty:
         graficar_boxplot_montos_venta(df, "boxplot_montos_venta.png")
     else:
