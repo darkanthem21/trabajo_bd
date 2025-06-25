@@ -158,8 +158,8 @@ Los gráficos se guardan en la carpeta `output/`.
 
 ## 6. Diagramas de la Base de Datos
 
-![Diagrama de base de datos (Transaccional)](diagrama_db_transaccional.png)
-![Diagrama de base de datos (Modelo estrella)](diagrama_db_new.png)
+![Diagrama de base de datos (Transaccional)](base_transaccional.png)
+![Diagrama de base de datos (Modelo estrella)](base_estrella.png)
 
 
 ---
