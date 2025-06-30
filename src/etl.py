@@ -23,11 +23,11 @@ def limpiar_tablas_destino(conn_dest):
         for query in [
             TRUNCATE_HECHOS_STOCK,
             TRUNCATE_HECHOS_VENTAS,
-            TRUNCATE_DIM_PRODUCTO,
-            TRUNCATE_DIM_CLIENTE,
-            TRUNCATE_DIM_UBICACION,
-            TRUNCATE_DIM_CATEGORIA,
-            TRUNCATE_DIM_FABRICANTE
+            TRUNCATE_PRODUCTO,
+            TRUNCATE_CLIENTE,
+            TRUNCATE_UBICACIONES,
+            TRUNCATE_CATEGORIAS,
+            TRUNCATE_FABRICANTES
         ]:
             cur.execute(query)
         conn_dest.commit()
@@ -65,29 +65,37 @@ def cargar_dimensiones(conn_dest, datos):
 
     with conn_dest.cursor() as cur:
         for fab_id, nombre in datos['fabricantes']:
-            cur.execute(INSERT_FABRICANTE_DESTINO_SQL, (nombre,))
+            cur.execute(
+                'INSERT INTO dim_fabricante (nombre_fabricante) VALUES (%s) RETURNING fabricante_id;',
+                (nombre,))
             new_id = cur.fetchone()[0]
             fab_map[fab_id] = new_id
 
         for cat_id, nombre in datos['categorias']:
-            cur.execute(INSERT_CATEGORIA_DESTINO_SQL, (nombre,))
+            cur.execute(
+                'INSERT INTO dim_categoria (nombre_categoria) VALUES (%s) RETURNING categoria_id;',
+                (nombre,))
             new_id = cur.fetchone()[0]
             cat_map[cat_id] = new_id
 
         for ubi_id, descripcion in datos['ubicaciones']:
             codigo = f"UB{ubi_id:03d}"
-            cur.execute(INSERT_UBICACION_DESTINO_SQL, (codigo, descripcion))
+            cur.execute(
+                'INSERT INTO dim_ubicacion (codigo_ubicacion, descripcion_ubicacion) VALUES (%s, %s) RETURNING ubicacion_id;',
+                (codigo, descripcion))
             new_id = cur.fetchone()[0]
             ubi_map[ubi_id] = new_id
 
         for idx, (rut, nombre) in enumerate(datos['clientes'], 1):
-            cur.execute(INSERT_CLIENTE_DESTINO_SQL, (idx, rut, nombre))
+            cur.execute(
+                'INSERT INTO dim_cliente (cliente_id, rut, nombre_cliente) VALUES (%s, %s, %s);',
+                (idx, rut, nombre))
             cli_map[rut] = idx
 
         for prod in datos['productos']:
-            (producto_id, nombre, fabricante_id, categoria_id, sku, costo_unitario, precio_venta, ubicacion_id) = prod
+            (producto_id, nombre, fabricante_id, categoria_id, sku, costo_unitario, precio_venta, _, ubicacion_id) = prod
             cur.execute(
-                INSERT_PRODUCTO_DESTINO_SQL,
+                'INSERT INTO dim_producto (producto_id, nombre_articulo, sku, fabricante_id, categoria_id, ubicacion_id, costo, precio) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);',
                 (
                     producto_id,
                     nombre,
@@ -112,7 +120,7 @@ def cargar_hechos(conn_dest, datos, cli_map, ubi_map, tipo_movimiento_ids):
             cur.execute("SELECT costo FROM dim_producto WHERE producto_id = %s;", (prod_id,))
             costo_unitario = cur.fetchone()[0]
             cur.execute(
-                INSERT_VENTA_DESTINO_SQL,
+                'INSERT INTO hechos_ventas (fecha, producto_id, cliente_id, cantidad, costo_unitario, total_venta, nro_boleta) VALUES (%s, %s, %s, %s, %s, %s, %s);',
                 (
                     fecha,
                     prod_id,
@@ -126,17 +134,17 @@ def cargar_hechos(conn_dest, datos, cli_map, ubi_map, tipo_movimiento_ids):
         for mov in datos['movimientos']:
             (movimiento_id, fecha_movimiento, tipo, cantidad, producto_id, ubicacion_id) = mov
             tipo_dim = TIPO_MOVIMIENTO_MAP.get(tipo)
-            tipo_movimiento_fk = tipo_movimiento_ids.get(tipo_dim)
-            if tipo_movimiento_fk is None:
+            tipo_movimiento_id = tipo_movimiento_ids.get(tipo_dim)
+            if tipo_movimiento_id is None:
                 print(f"ADVERTENCIA: Tipo de movimiento '{tipo}' no mapeado, se omite movimiento_id={movimiento_id}")
                 continue
             cur.execute(
-                INSERT_MOVIMIENTO_STOCK_DESTINO_SQL,
+                'INSERT INTO hechos_stock (fecha, producto_id, ubicacion_id, tipo_movimiento_id, cantidad) VALUES (%s, %s, %s, %s, %s);',
                 (
                     fecha_movimiento,
                     producto_id,
                     ubi_map.get(ubicacion_id),
-                    tipo_movimiento_fk,
+                    tipo_movimiento_id,
                     cantidad
                 )
             )

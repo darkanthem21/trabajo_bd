@@ -47,14 +47,14 @@ JOIN dim_producto p ON hs.producto_id = p.producto_id
 JOIN dim_movimiento dm ON hs.tipo_movimiento_id = dm.id
 WHERE EXTRACT(YEAR FROM hs.fecha) = %(year)s
 GROUP BY p.nombre_articulo, DATE(hs.fecha)
-ORDER BY p.nombre_articulo, fecha;
+ORDER BY p.nombre_articulo, fecha LIMIT 10;
 """
 
 DISTRIBUCION_TIPOS_MOVIMIENTO_SQL = """
 SELECT
   dm.tipo_movimiento,
   DATE_TRUNC('month', hs.fecha) AS mes,
-  SUM(hs.cantidad) AS total_movimiento
+  ABS(SUM(hs.cantidad)) AS total_movimiento
 FROM hechos_stock hs
 JOIN dim_movimiento dm ON hs.tipo_movimiento_id = dm.id
 WHERE EXTRACT(YEAR FROM hs.fecha) = %(year)s

@@ -10,11 +10,11 @@ Versión corregida con validaciones y mejor manejo de errores
 
 TRUNCATE_HECHOS_STOCK = 'TRUNCATE TABLE "hechos_stock" RESTART IDENTITY CASCADE;'
 TRUNCATE_HECHOS_VENTAS = 'TRUNCATE TABLE "hechos_ventas" RESTART IDENTITY CASCADE;'
-TRUNCATE_PRODUCTOS = 'TRUNCATE TABLE "productos" RESTART IDENTITY CASCADE;'
-TRUNCATE_CLIENTE = 'TRUNCATE TABLE "cliente" RESTART IDENTITY CASCADE;'
-TRUNCATE_UBICACIONES = 'TRUNCATE TABLE "ubicaciones" RESTART IDENTITY CASCADE;'
-TRUNCATE_CATEGORIAS = 'TRUNCATE TABLE "categorias" RESTART IDENTITY CASCADE;'
-TRUNCATE_FABRICANTES = 'TRUNCATE TABLE "fabricantes" RESTART IDENTITY CASCADE;'
+TRUNCATE_PRODUCTO = 'TRUNCATE TABLE "dim_producto" RESTART IDENTITY CASCADE;'
+TRUNCATE_CLIENTE = 'TRUNCATE TABLE "dim_cliente" RESTART IDENTITY CASCADE;'
+TRUNCATE_UBICACIONES = 'TRUNCATE TABLE "dim_ubicacion" RESTART IDENTITY CASCADE;'
+TRUNCATE_CATEGORIAS = 'TRUNCATE TABLE "dim_categoria" RESTART IDENTITY CASCADE;'
+TRUNCATE_FABRICANTES = 'TRUNCATE TABLE "dim_fabricante" RESTART IDENTITY CASCADE;'
 
 # ============================================================================
 # QUERIES DE LECTURA DESDE BASE ORIGEN (RELACIONAL)
@@ -108,44 +108,43 @@ WHERE producto_id = %s;
 # ============================================================================
 
 INSERT_FABRICANTE_DESTINO_SQL = """
-INSERT INTO fabricantes (nombre_fabricante)
+INSERT INTO dim_fabricante (nombre_fabricante)
 VALUES (%s)
 RETURNING fabricante_id;
 """
 
 INSERT_CATEGORIA_DESTINO_SQL = """
-INSERT INTO categorias (nombre_categoria)
+INSERT INTO dim_categoria (nombre_categoria)
 VALUES (%s)
 RETURNING categoria_id;
 """
 
 INSERT_UBICACION_DESTINO_SQL = """
-INSERT INTO ubicaciones (codigo_ubicacion, descripcion_ubicacion)
+INSERT INTO dim_ubicacion (codigo_ubicacion, descripcion_ubicacion)
 VALUES (%s, %s)
 RETURNING ubicacion_id;
 """
 
 INSERT_CLIENTE_DESTINO_SQL = """
-INSERT INTO cliente (cliente_id, rut, nombre_cliente)
+INSERT INTO dim_cliente (cliente_id, rut, nombre_cliente)
 VALUES (%s, %s, %s);
 """
 
 INSERT_PRODUCTO_DESTINO_SQL = """
-INSERT INTO productos
-(producto_id, nombre_articulo, fabricante_fk, categoria_fk,
- sku, costo, precio, stock_actual, ubicacion_fk)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+INSERT INTO dim_producto
+(producto_id, nombre_articulo, sku, fabricante_id, categoria_id, ubicacion_id, costo, precio)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
 """
 
 INSERT_VENTA_DESTINO_SQL = """
 INSERT INTO hechos_ventas
-(nro_boleta, producto_fk, fecha, cliente_fk, cantidad, costo_unitario, total_venta)
+(fecha, producto_id, cliente_id, cantidad, costo_unitario, total_venta, nro_boleta)
 VALUES (%s, %s, %s, %s, %s, %s, %s);
 """
 
 INSERT_MOVIMIENTO_STOCK_DESTINO_SQL = """
 INSERT INTO hechos_stock
-(producto_fk, fecha, ubicacion_fk, tipo_movimiento_fk, cantidad)
+(fecha, producto_id, ubicacion_id, tipo_movimiento_id, cantidad)
 VALUES (%s, %s, %s, %s, %s);
 """
 
@@ -154,19 +153,19 @@ VALUES (%s, %s, %s, %s, %s);
 # ============================================================================
 
 CHECK_PRODUCTO_EXISTS_SQL = """
-SELECT 1 FROM productos WHERE producto_id = %s;
+SELECT 1 FROM dim_producto WHERE producto_id = %s;
 """
 
 CHECK_FABRICANTE_EXISTS_SQL = """
-SELECT 1 FROM fabricantes WHERE fabricante_id = %s;
+SELECT 1 FROM dim_fabricante WHERE fabricante_id = %s;
 """
 
 CHECK_CATEGORIA_EXISTS_SQL = """
-SELECT 1 FROM categorias WHERE categoria_id = %s;
+SELECT 1 FROM dim_categoria WHERE categoria_id = %s;
 """
 
 CHECK_CLIENTE_EXISTS_SQL = """
-SELECT 1 FROM cliente WHERE cliente_id = %s;
+SELECT 1 FROM dim_cliente WHERE cliente_id = %s;
 """
 
 # ============================================================================
